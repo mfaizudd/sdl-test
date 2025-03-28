@@ -2,6 +2,7 @@
 #include "SDL_events.h"
 #include "SDL_keycode.h"
 #include "SDL_log.h"
+#include "SDL_rect.h"
 #include "SDL_surface.h"
 #include "SDL_video.h"
 #include <SDL.h>
@@ -61,7 +62,8 @@ int main(int argc, char *args[]) {
               break;
             }
           }
-          SDL_BlitSurface(gCurrentSurface, NULL, gScreenSurface, NULL);
+          SDL_Rect stretchRect{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+          SDL_BlitScaled(gCurrentSurface, NULL, gScreenSurface, &stretchRect);
           SDL_UpdateWindowSurface(gWindow);
         }
       }
