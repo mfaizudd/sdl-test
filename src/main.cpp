@@ -2,6 +2,7 @@
 #include "SDL_events.h"
 #include "SDL_image.h"
 #include "SDL_log.h"
+#include "SDL_rect.h"
 #include "SDL_render.h"
 #include "SDL_surface.h"
 #include "SDL_video.h"
@@ -43,8 +44,24 @@ int main(int argc, char *args[]) {
       }
     }
 
+    SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(gRenderer);
-    SDL_RenderCopy(gRenderer, gTexture, NULL, NULL);
+    SDL_Rect fillRect = {SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, SCREEN_WIDTH / 2,
+                         SCREEN_HEIGHT / 2};
+    SDL_SetRenderDrawColor(gRenderer, 0xFF, 0, 0, 0xFF);
+    SDL_RenderFillRect(gRenderer, &fillRect);
+    SDL_Rect outlineRect = {SCREEN_WIDTH / 6, SCREEN_HEIGHT / 6,
+                            SCREEN_WIDTH * 2 / 3, SCREEN_HEIGHT * 2 / 3};
+    SDL_SetRenderDrawColor(gRenderer, 0, 0xFF, 0, 0xFF);
+    SDL_RenderDrawRect(gRenderer, &outlineRect);
+    SDL_SetRenderDrawColor(gRenderer, 0, 0, 0xFF, 0xFF);
+    SDL_RenderDrawLine(gRenderer, 0, SCREEN_HEIGHT / 2, SCREEN_WIDTH,
+                       SCREEN_HEIGHT / 2);
+    SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0, 0xFF);
+    for (int i = 0; i < SCREEN_HEIGHT; i += 4) {
+      SDL_RenderDrawPoint(gRenderer, SCREEN_WIDTH / 2, i);
+    }
+    // SDL_RenderCopy(gRenderer, gTexture, NULL, NULL);
     SDL_RenderPresent(gRenderer);
   }
 
@@ -89,14 +106,7 @@ bool init() {
   return true;
 }
 
-bool loadMedia() {
-  gTexture = loadTexture("assets/texture.png");
-  if (gTexture == NULL) {
-    SDL_Log("Failed to load texture.");
-    return false;
-  }
-  return true;
-}
+bool loadMedia() { return true; }
 
 SDL_Texture *loadTexture(std::string path) {
   SDL_Texture *newTexture = NULL;
