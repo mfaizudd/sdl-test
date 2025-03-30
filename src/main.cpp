@@ -1,6 +1,7 @@
 #include "SDL_error.h"
 #include "SDL_events.h"
 #include "SDL_image.h"
+#include "SDL_keycode.h"
 #include "SDL_log.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
@@ -35,18 +36,44 @@ int main(int argc, char *args[]) {
 
   SDL_UpdateWindowSurface(g_window);
 
+  uint8_t r = 0x80;
+  uint8_t g = 0x80;
+  uint8_t b = 0x80;
+
   SDL_Event e;
   bool quit = false;
   while (!quit) {
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_QUIT) {
         quit = true;
+      } else if (e.type == SDL_KEYDOWN) {
+        switch (e.key.keysym.sym) {
+        case SDLK_q:
+          r += 0x20;
+          break;
+        case SDLK_w:
+          g += 0x20;
+          break;
+        case SDLK_e:
+          b += 0x20;
+          break;
+        case SDLK_a:
+          r -= 0x20;
+          break;
+        case SDLK_s:
+          g -= 0x20;
+          break;
+        case SDLK_d:
+          b -= 0x20;
+          break;
+        }
       }
     }
 
     SDL_SetRenderDrawColor(g_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(g_renderer);
 
+    background->set_color(r, g, b);
     background->render(0, 0);
     texture->render(240, 190);
     SDL_Rect clip1{0, 0, 100, 100};

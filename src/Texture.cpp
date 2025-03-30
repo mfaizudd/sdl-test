@@ -5,6 +5,7 @@
 #include "SDL_render.h"
 #include "SDL_stdinc.h"
 #include "SDL_surface.h"
+#include <cstdint>
 
 Texture::Texture(SDL_Renderer *renderer) : renderer(renderer) {
   this->texture = nullptr;
@@ -57,6 +58,10 @@ void Texture::free() {
   this->texture = nullptr;
   this->width = 0;
   this->height = 0;
+}
+
+void Texture::set_color(uint8_t r, uint8_t g, uint8_t b) {
+  SDL_SetTextureColorMod(this->texture, r, g, b);
 }
 
 void Texture::render(int x, int y, const SDL_Rect *clip) {
