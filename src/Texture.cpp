@@ -1,4 +1,5 @@
 #include "Texture.h"
+#include "SDL_blendmode.h"
 #include "SDL_image.h"
 #include "SDL_pixels.h"
 #include "SDL_rect.h"
@@ -62,6 +63,14 @@ void Texture::free() {
 
 void Texture::set_color(uint8_t r, uint8_t g, uint8_t b) {
   SDL_SetTextureColorMod(this->texture, r, g, b);
+}
+
+void Texture::set_blend_mode(SDL_BlendMode blending) {
+  SDL_SetTextureBlendMode(this->texture, blending);
+}
+
+void Texture::set_alpha(uint8_t alpha) {
+  SDL_SetTextureAlphaMod(this->texture, alpha);
 }
 
 void Texture::render(int x, int y, const SDL_Rect *clip) {

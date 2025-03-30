@@ -1,3 +1,4 @@
+#include "SDL_blendmode.h"
 #include "SDL_error.h"
 #include "SDL_events.h"
 #include "SDL_image.h"
@@ -39,6 +40,7 @@ int main(int argc, char *args[]) {
   uint8_t r = 0x80;
   uint8_t g = 0x80;
   uint8_t b = 0x80;
+  uint8_t a = 0x00;
 
   SDL_Event e;
   bool quit = false;
@@ -66,6 +68,12 @@ int main(int argc, char *args[]) {
         case SDLK_d:
           b -= 0x20;
           break;
+        case SDLK_UP:
+          a += 0x20;
+          break;
+        case SDLK_DOWN:
+          a -= 0x20;
+          break;
         }
       }
     }
@@ -77,6 +85,8 @@ int main(int argc, char *args[]) {
     background->render(0, 0);
     texture->render(240, 190);
     SDL_Rect clip1{0, 0, 100, 100};
+    sheet->set_blend_mode(SDL_BLENDMODE_ADD);
+    sheet->set_alpha(a);
     sheet->render(0, 0, &clip1);
     SDL_Rect clip2{100, 0, 100, 100};
     sheet->render(SCREEN_WIDTH - 100, 0, &clip2);
