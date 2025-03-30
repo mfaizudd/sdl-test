@@ -1,4 +1,5 @@
 #pragma once
+#include "SDL_rect.h"
 #include "SDL_render.h"
 #include <string>
 
@@ -8,7 +9,7 @@ public:
   ~Texture();
   bool load_from_file(std::string path);
   void free();
-  void render(int x, int y);
+  void render(int x, int y, const SDL_Rect *clip = nullptr);
   int get_width();
   int get_height();
 

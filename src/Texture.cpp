@@ -59,14 +59,17 @@ void Texture::free() {
   this->height = 0;
 }
 
-void Texture::render(int x, int y) {
+void Texture::render(int x, int y, const SDL_Rect *clip) {
   if (this->renderer == nullptr) {
     SDL_Log("Unable to render texture. Renderer is not set");
     return;
   }
   SDL_Rect quad{x, y, this->width, this->height};
-  SDL_RenderSetViewport(this->renderer, &quad);
-  SDL_RenderCopy(this->renderer, this->texture, nullptr, nullptr);
+  if (clip != nullptr) {
+    quad.w = clip->w;
+    quad.h = clip->h;
+  }
+  SDL_RenderCopy(this->renderer, this->texture, clip, &quad);
 }
 
 int Texture::get_width() { return this->width; }
