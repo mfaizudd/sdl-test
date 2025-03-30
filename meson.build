@@ -5,9 +5,11 @@ deps = [
   sdl2_dep,
   sdl2_image_dep,
 ]
-includes = include_directories(['src'])
+includes = include_directories([
+  'src',
+])
 sources = [
   'src/main.cpp',
-  'src/Texture.cpp'
+  'src/Texture.cpp',
 ]
 executable('sdl-test', sources, dependencies: deps, include_directories: includes)

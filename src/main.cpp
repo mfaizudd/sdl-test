@@ -2,9 +2,7 @@
 #include "SDL_events.h"
 #include "SDL_image.h"
 #include "SDL_log.h"
-#include "SDL_rect.h"
 #include "SDL_render.h"
-#include "SDL_surface.h"
 #include "SDL_video.h"
 #include "Texture.h"
 #include <SDL.h>
@@ -16,7 +14,6 @@ const int SCREEN_HEIGHT = 480;
 bool init();
 bool load_media();
 void close();
-SDL_Texture *load_texture(std::string path);
 SDL_Window *g_window = NULL;
 SDL_Renderer *g_renderer = NULL;
 Texture *texture = NULL;
@@ -102,28 +99,7 @@ bool load_media() {
   if (!background->load_from_file("assets/background.png")) {
     return false;
   }
-  return texture->load_from_file("assets/texture.png");
-}
-
-SDL_Texture *load_texture(std::string path) {
-  SDL_Texture *newTexture = NULL;
-  SDL_Surface *loadedSurface = IMG_Load(path.c_str());
-  if (loadedSurface == NULL) {
-    SDL_Log("Unable to load image %s. SDL_Image error: %s\n", path.c_str(),
-            IMG_GetError());
-    return NULL;
-  }
-
-  newTexture = SDL_CreateTextureFromSurface(g_renderer, loadedSurface);
-  SDL_FreeSurface(loadedSurface);
-  loadedSurface = NULL;
-  if (newTexture == NULL) {
-    SDL_Log("Unable to create texture from %s. SDL Error: %s\n", path.c_str(),
-            SDL_GetError());
-    return NULL;
-  }
-
-  return newTexture;
+  return texture->load_from_file("assets/foo.png");
 }
 
 void close() {
