@@ -1,11 +1,11 @@
 #include "Texture.h"
-#include "SDL_blendmode.h"
-#include "SDL_image.h"
-#include "SDL_pixels.h"
-#include "SDL_rect.h"
-#include "SDL_render.h"
-#include "SDL_stdinc.h"
-#include "SDL_surface.h"
+#include <SDL2/SDL_rect.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_error.h>
+#include <SDL3/SDL_main.h>
+#include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_surface.h>
+#include <SDL3_image/SDL_image.h>
 #include <cstdint>
 
 Texture::Texture(SDL_Renderer *renderer) : renderer(renderer) {
@@ -27,16 +27,16 @@ bool Texture::load_from_file(std::string path) {
   SDL_Surface *loaded_surface = IMG_Load(path.c_str());
   if (loaded_surface == nullptr) {
     SDL_Log("Unable to load image %s. SDL_Image error: %s\n", path.c_str(),
-            IMG_GetError());
+            SDL_GetError());
     return false;
   }
 
-  SDL_SetColorKey(loaded_surface, SDL_TRUE,
-                  SDL_MapRGB(loaded_surface->format, 0, 0xFF, 0xFF));
+  SDL_SetSurfaceColorKey(loaded_surface, true,
+                  SDL_MapSurfaceRGB(loaded_surface, 0, 0xFF, 0xFF));
 
   new_texture = SDL_CreateTextureFromSurface(this->renderer, loaded_surface);
   if (new_texture == nullptr) {
-    SDL_FreeSurface(loaded_surface);
+    SDL_DestroySurface(loaded_surface);
     loaded_surface = nullptr;
     SDL_Log("Unable to create texture from %s. SDL Error: %s\n", path.c_str(),
             SDL_GetError());
@@ -44,7 +44,7 @@ bool Texture::load_from_file(std::string path) {
   }
   this->width = loaded_surface->w;
   this->height = loaded_surface->h;
-  SDL_FreeSurface(loaded_surface);
+  SDL_DestroySurface(loaded_surface);
   loaded_surface = nullptr;
 
   this->texture = new_texture;
@@ -73,18 +73,18 @@ void Texture::set_alpha(uint8_t alpha) {
   SDL_SetTextureAlphaMod(this->texture, alpha);
 }
 
-void Texture::render(int x, int y, const SDL_Rect *clip) {
+void Texture::render(float x, float y, const SDL_FRect *clip) {
   if (this->renderer == nullptr) {
     SDL_Log("Unable to render texture. Renderer is not set");
     return;
   }
-  SDL_Rect quad{x, y, this->width, this->height};
+  SDL_FRect quad{x, y, this->width, this->height};
   if (clip != nullptr) {
     quad.w = clip->w;
     quad.h = clip->h;
   }
-  SDL_RenderCopy(this->renderer, this->texture, clip, &quad);
+  SDL_RenderTexture(this->renderer, this->texture, clip, &quad);
 }
 
-int Texture::get_width() { return this->width; }
-int Texture::get_height() { return this->height; }
+float Texture::get_width() { return this->width; }
+float Texture::get_height() { return this->height; }

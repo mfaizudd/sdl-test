@@ -1,14 +1,9 @@
-#include "SDL_blendmode.h"
-#include "SDL_error.h"
-#include "SDL_events.h"
-#include "SDL_image.h"
-#include "SDL_keycode.h"
-#include "SDL_log.h"
-#include "SDL_rect.h"
-#include "SDL_render.h"
-#include "SDL_video.h"
 #include "Texture.h"
-#include <SDL.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_keycode.h>
+#include <SDL3/SDL_main.h>
+#include <SDL3_image/SDL_image.h>
 #include <string>
 
 const int SCREEN_WIDTH = 640;
@@ -46,26 +41,26 @@ int main(int argc, char *args[]) {
   bool quit = false;
   while (!quit) {
     while (SDL_PollEvent(&e)) {
-      if (e.type == SDL_QUIT) {
+      if (e.type == SDL_EVENT_QUIT) {
         quit = true;
-      } else if (e.type == SDL_KEYDOWN) {
-        switch (e.key.keysym.sym) {
-        case SDLK_q:
+      } else if (e.type == SDL_EVENT_KEY_DOWN) {
+        switch (e.key.key) {
+        case SDLK_Q:
           r += 0x20;
           break;
-        case SDLK_w:
+        case SDLK_W:
           g += 0x20;
           break;
-        case SDLK_e:
+        case SDLK_E:
           b += 0x20;
           break;
-        case SDLK_a:
+        case SDLK_A:
           r -= 0x20;
           break;
-        case SDLK_s:
+        case SDLK_S:
           g -= 0x20;
           break;
-        case SDLK_d:
+        case SDLK_D:
           b -= 0x20;
           break;
         case SDLK_UP:
@@ -84,15 +79,15 @@ int main(int argc, char *args[]) {
     background->set_color(r, g, b);
     background->render(0, 0);
     texture->render(240, 190);
-    SDL_Rect clip1{0, 0, 100, 100};
+    SDL_FRect clip1{0, 0, 100, 100};
     sheet->set_blend_mode(SDL_BLENDMODE_ADD);
     sheet->set_alpha(a);
     sheet->render(0, 0, &clip1);
-    SDL_Rect clip2{100, 0, 100, 100};
+    SDL_FRect clip2{100, 0, 100, 100};
     sheet->render(SCREEN_WIDTH - 100, 0, &clip2);
-    SDL_Rect clip3{0, 100, 100, 100};
+    SDL_FRect clip3{0, 100, 100, 100};
     sheet->render(0, SCREEN_HEIGHT - 100, &clip3);
-    SDL_Rect clip4{100, 100, 100, 100};
+    SDL_FRect clip4{100, 100, 100, 100};
     sheet->render(SCREEN_WIDTH - 100, SCREEN_HEIGHT - 100, &clip4);
     SDL_RenderPresent(g_renderer);
   }
@@ -104,36 +99,22 @@ int main(int argc, char *args[]) {
 
 bool init() {
   // Initialize SDL
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+  if (!SDL_Init(SDL_INIT_VIDEO)) {
     SDL_Log("Could not initialize SDL. Error: %s\n", SDL_GetError());
     return false;
   }
 
   // Create window
-  g_window = SDL_CreateWindow(
-      "SDL Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH,
-      SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-  if (g_window == nullptr) {
-    SDL_Log("Could not create window. Error: %s\n", SDL_GetError());
+  if (!SDL_CreateWindowAndRenderer("SDL Test", SCREEN_WIDTH, SCREEN_HEIGHT,
+                                   SDL_WINDOW_RESIZABLE, &g_window,
+                                   &g_renderer)) {
+    SDL_Log("Could not create window and renderer. Error: %s\n",
+            SDL_GetError());
     return false;
   }
-
   // Create renderer
-  g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED);
-  if (g_renderer == nullptr) {
-    SDL_Log("Could not create renderer. Error: %s\n", SDL_GetError());
-    return false;
-  }
 
   SDL_SetRenderDrawColor(g_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-
-  // Initialize SDL_Image
-  int img_flags = IMG_INIT_PNG;
-  if (!(IMG_Init(img_flags) & img_flags)) {
-    SDL_Log("Could not initialize png image. SDL_Image error: %s\n",
-            IMG_GetError());
-    return false;
-  }
 
   texture = new Texture(g_renderer);
   background = new Texture(g_renderer);
@@ -160,6 +141,5 @@ void close() {
   g_renderer = nullptr;
   SDL_DestroyWindow(g_window);
   g_window = nullptr;
-  IMG_Quit();
   SDL_Quit();
 }

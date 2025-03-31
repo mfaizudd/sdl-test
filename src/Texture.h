@@ -1,7 +1,8 @@
 #pragma once
-#include "SDL_blendmode.h"
-#include "SDL_rect.h"
-#include "SDL_render.h"
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
+#include <SDL3/SDL_rect.h>
+#include <SDL3_image/SDL_image.h>
 #include <cstdint>
 #include <string>
 
@@ -14,14 +15,14 @@ public:
   void set_color(uint8_t r, uint8_t g, uint8_t b);
   void set_blend_mode(SDL_BlendMode blending);
   void set_alpha(uint8_t alpha);
-  void render(int x, int y, const SDL_Rect *clip = nullptr);
-  int get_width();
-  int get_height();
+  void render(float x, float y, const SDL_FRect *clip = nullptr);
+  float get_width();
+  float get_height();
 
 private:
   SDL_Texture *texture;
   SDL_Renderer *renderer;
 
-  int width;
-  int height;
+  float width;
+  float height;
 };
