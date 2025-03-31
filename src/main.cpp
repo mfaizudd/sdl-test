@@ -3,11 +3,14 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_keycode.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_render.h>
 #include <SDL3_image/SDL_image.h>
 #include <string>
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
+const int TOTAL_FRAMES = 4;
 bool init();
 bool load_media();
 void close();
@@ -16,6 +19,7 @@ SDL_Renderer *g_renderer = nullptr;
 Texture *texture = nullptr;
 Texture *background = nullptr;
 Texture *sheet = nullptr;
+SDL_FRect sprite_clips[TOTAL_FRAMES];
 
 int main(int argc, char *args[]) {
   if (!init()) {
@@ -39,6 +43,7 @@ int main(int argc, char *args[]) {
 
   SDL_Event e;
   bool quit = false;
+  int frame_index = 0;
   while (!quit) {
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_EVENT_QUIT) {
@@ -78,7 +83,8 @@ int main(int argc, char *args[]) {
 
     background->set_color(r, g, b);
     background->render(0, 0);
-    texture->render(240, 190);
+    SDL_FRect *frame_clip = &sprite_clips[frame_index / 4];
+    texture->render(240, 190, frame_clip);
     SDL_FRect clip1{0, 0, 100, 100};
     sheet->set_blend_mode(SDL_BLENDMODE_ADD);
     sheet->set_alpha(a);
@@ -90,6 +96,7 @@ int main(int argc, char *args[]) {
     SDL_FRect clip4{100, 100, 100, 100};
     sheet->render(SCREEN_WIDTH - 100, SCREEN_HEIGHT - 100, &clip4);
     SDL_RenderPresent(g_renderer);
+    frame_index = (frame_index + 1) % (TOTAL_FRAMES * 4);
   }
 
   close();
@@ -104,7 +111,7 @@ bool init() {
     return false;
   }
 
-  // Create window
+  // Create window and renderer
   if (!SDL_CreateWindowAndRenderer("SDL Test", SCREEN_WIDTH, SCREEN_HEIGHT,
                                    SDL_WINDOW_RESIZABLE, &g_window,
                                    &g_renderer)) {
@@ -112,8 +119,8 @@ bool init() {
             SDL_GetError());
     return false;
   }
-  // Create renderer
 
+  SDL_SetRenderVSync(g_renderer, 1);
   SDL_SetRenderDrawColor(g_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
   texture = new Texture(g_renderer);
@@ -129,6 +136,11 @@ bool load_media() {
   }
   if (!texture->load_from_file("assets/foo.png")) {
     return false;
+  }
+  for (int i = 0; i < TOTAL_FRAMES; i++) {
+    sprite_clips[i].x = i * 64;
+    sprite_clips[i].w = 64;
+    sprite_clips[i].h = 205;
   }
   return sheet->load_from_file("assets/sprites.png");
 }
