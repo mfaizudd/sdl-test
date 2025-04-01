@@ -3,9 +3,12 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_keycode.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
+#include <SDL3/SDL_surface.h>
 #include <SDL3_image/SDL_image.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <string>
 
 const int SCREEN_WIDTH = 640;
@@ -16,9 +19,11 @@ bool load_media();
 void close();
 SDL_Window *g_window = nullptr;
 SDL_Renderer *g_renderer = nullptr;
+TTF_Font *g_font = nullptr;
 Texture *texture = nullptr;
 Texture *background = nullptr;
 Texture *sheet = nullptr;
+Texture *font_texture = nullptr;
 SDL_FRect sprite_clips[TOTAL_FRAMES];
 
 int main(int argc, char *args[]) {
@@ -40,6 +45,8 @@ int main(int argc, char *args[]) {
   uint8_t g = 0x80;
   uint8_t b = 0x80;
   uint8_t a = 0x00;
+  double degrees = 0;
+  SDL_FlipMode flip = SDL_FLIP_NONE;
 
   SDL_Event e;
   bool quit = false;
@@ -68,8 +75,23 @@ int main(int argc, char *args[]) {
         case SDLK_D:
           b -= 0x20;
           break;
+        case SDLK_Z:
+          degrees -= 10;
+          break;
+        case SDLK_C:
+          degrees += 10;
+          break;
         case SDLK_UP:
           a += 0x20;
+          break;
+        case SDLK_R:
+          flip = SDL_FLIP_HORIZONTAL;
+          break;
+        case SDLK_F:
+          flip = SDL_FLIP_NONE;
+          break;
+        case SDLK_V:
+          flip = SDL_FLIP_VERTICAL;
           break;
         case SDLK_DOWN:
           a -= 0x20;
@@ -84,7 +106,8 @@ int main(int argc, char *args[]) {
     background->set_color(r, g, b);
     background->render(0, 0);
     SDL_FRect *frame_clip = &sprite_clips[frame_index / 4];
-    texture->render(240, 190, frame_clip);
+    SDL_FPoint center{frame_clip->w / 2, frame_clip->h / 2};
+    texture->render(240, 190, frame_clip, degrees, &center, flip);
     SDL_FRect clip1{0, 0, 100, 100};
     sheet->set_blend_mode(SDL_BLENDMODE_ADD);
     sheet->set_alpha(a);
@@ -95,6 +118,8 @@ int main(int argc, char *args[]) {
     sheet->render(0, SCREEN_HEIGHT - 100, &clip3);
     SDL_FRect clip4{100, 100, 100, 100};
     sheet->render(SCREEN_WIDTH - 100, SCREEN_HEIGHT - 100, &clip4);
+    font_texture->render((SCREEN_WIDTH - font_texture->get_width()) / 2,
+                         (SCREEN_HEIGHT - font_texture->get_height()) / 2);
     SDL_RenderPresent(g_renderer);
     frame_index = (frame_index + 1) % (TOTAL_FRAMES * 4);
   }
@@ -122,10 +147,15 @@ bool init() {
 
   SDL_SetRenderVSync(g_renderer, 1);
   SDL_SetRenderDrawColor(g_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+  if (!TTF_Init()) {
+    SDL_Log("Could not initialize ttf. Error: %s\n", SDL_GetError());
+    return false;
+  }
 
   texture = new Texture(g_renderer);
   background = new Texture(g_renderer);
   sheet = new Texture(g_renderer);
+  font_texture = new Texture(g_renderer);
 
   return true;
 }
@@ -142,6 +172,12 @@ bool load_media() {
     sprite_clips[i].w = 64;
     sprite_clips[i].h = 205;
   }
+  g_font = TTF_OpenFont("assets/lazy.ttf", 28);
+  if (!font_texture->load_from_rendered_text(
+          "The quick brown fox jumps over the lazy dog.", SDL_Color{0, 0, 0},
+          g_font)) {
+    return false;
+  }
   return sheet->load_from_file("assets/sprites.png");
 }
 
@@ -149,9 +185,13 @@ void close() {
   texture->free();
   background->free();
   sheet->free();
+  font_texture->free();
+  TTF_CloseFont(g_font);
+  g_font = nullptr;
   SDL_DestroyRenderer(g_renderer);
   g_renderer = nullptr;
   SDL_DestroyWindow(g_window);
   g_window = nullptr;
+  TTF_Quit();
   SDL_Quit();
 }

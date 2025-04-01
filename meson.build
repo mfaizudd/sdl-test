@@ -1,9 +1,11 @@
 project('sdl-test', 'cpp')
-sdl2_dep = dependency('sdl3')
-sdl2_image_dep = dependency('SDL3_image')
+sdl3_dep = dependency('sdl3')
+sdl3_image_dep = dependency('SDL3_image')
+sdl3_ttf_dep = dependency('SDL3_ttf')
 deps = [
-  sdl2_dep,
-  sdl2_image_dep,
+  sdl3_dep,
+  sdl3_image_dep,
+  sdl3_ttf_dep,
 ]
 includes = include_directories([
   'src',

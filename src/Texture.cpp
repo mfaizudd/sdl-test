@@ -1,11 +1,14 @@
 #include "Texture.h"
-#include <SDL2/SDL_rect.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_error.h>
+#include <SDL3/SDL_log.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_render.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3_image/SDL_image.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <cstdint>
 
 Texture::Texture(SDL_Renderer *renderer) : renderer(renderer) {
@@ -32,7 +35,7 @@ bool Texture::load_from_file(std::string path) {
   }
 
   SDL_SetSurfaceColorKey(loaded_surface, true,
-                  SDL_MapSurfaceRGB(loaded_surface, 0, 0xFF, 0xFF));
+                         SDL_MapSurfaceRGB(loaded_surface, 0, 0xFF, 0xFF));
 
   new_texture = SDL_CreateTextureFromSurface(this->renderer, loaded_surface);
   if (new_texture == nullptr) {
@@ -49,6 +52,31 @@ bool Texture::load_from_file(std::string path) {
 
   this->texture = new_texture;
   return this->texture != nullptr;
+}
+
+bool Texture::load_from_rendered_text(std::string text, SDL_Color color,
+                                      TTF_Font *font) {
+  if (this->renderer == nullptr) {
+    SDL_Log("Unable to load rendered text. Renderer is not set.\n");
+    return false;
+  }
+  this->free();
+  auto surface = TTF_RenderText_Blended(font, text.c_str(), 0, color);
+  if (surface == nullptr) {
+    SDL_Log("Unable to render text. %s\n", SDL_GetError());
+    return false;
+  }
+  this->texture = SDL_CreateTextureFromSurface(this->renderer, surface);
+  if (this->texture == nullptr) {
+    SDL_Log("Unable to create texture from rendered text. %s\n",
+            SDL_GetError());
+    SDL_DestroySurface(surface);
+    return false;
+  }
+  this->width = surface->w;
+  this->height = surface->h;
+  SDL_DestroySurface(surface);
+  return true;
 }
 
 void Texture::free() {
@@ -73,7 +101,8 @@ void Texture::set_alpha(uint8_t alpha) {
   SDL_SetTextureAlphaMod(this->texture, alpha);
 }
 
-void Texture::render(float x, float y, const SDL_FRect *clip) {
+void Texture::render(float x, float y, const SDL_FRect *clip, double angle,
+                     const SDL_FPoint *center, SDL_FlipMode flip) {
   if (this->renderer == nullptr) {
     SDL_Log("Unable to render texture. Renderer is not set");
     return;
@@ -83,7 +112,8 @@ void Texture::render(float x, float y, const SDL_FRect *clip) {
     quad.w = clip->w;
     quad.h = clip->h;
   }
-  SDL_RenderTexture(this->renderer, this->texture, clip, &quad);
+  SDL_RenderTextureRotated(this->renderer, this->texture, clip, &quad, angle,
+                           center, flip);
 }
 
 float Texture::get_width() { return this->width; }
