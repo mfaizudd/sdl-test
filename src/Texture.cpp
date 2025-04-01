@@ -8,7 +8,6 @@
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3_image/SDL_image.h>
-#include <SDL3_ttf/SDL_ttf.h>
 #include <cstdint>
 
 Texture::Texture(SDL_Renderer *renderer) : renderer(renderer) {
@@ -54,6 +53,7 @@ bool Texture::load_from_file(std::string path) {
   return this->texture != nullptr;
 }
 
+#if defined (SDL_TTF_MAJOR_VERSION)
 bool Texture::load_from_rendered_text(std::string text, SDL_Color color,
                                       TTF_Font *font) {
   if (this->renderer == nullptr) {
@@ -78,6 +78,7 @@ bool Texture::load_from_rendered_text(std::string text, SDL_Color color,
   SDL_DestroySurface(surface);
   return true;
 }
+#endif // defined (SDL_TTF_MAJOR_VERSION)
 
 void Texture::free() {
   if (this->texture == nullptr) {

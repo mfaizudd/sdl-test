@@ -13,5 +13,6 @@ includes = include_directories([
 sources = [
   'src/main.cpp',
   'src/Texture.cpp',
+  'src/Button.cpp',
 ]
 executable('sdl-test', sources, dependencies: deps, include_directories: includes)

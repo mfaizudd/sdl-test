@@ -1,3 +1,4 @@
+#include "Button.h"
 #include "Texture.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_events.h>
@@ -8,7 +9,6 @@
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3_image/SDL_image.h>
-#include <SDL3_ttf/SDL_ttf.h>
 #include <string>
 
 const int SCREEN_WIDTH = 640;
@@ -19,12 +19,18 @@ bool load_media();
 void close();
 SDL_Window *g_window = nullptr;
 SDL_Renderer *g_renderer = nullptr;
+#ifdef SDL_TTF_MAJOR_VERSION
 TTF_Font *g_font = nullptr;
+#endif // SDL_TTF_MAJOR_VERSION
 Texture *texture = nullptr;
 Texture *background = nullptr;
 Texture *sheet = nullptr;
+#ifdef SDL_TTF_MAJOR_VERSION
 Texture *font_texture = nullptr;
+#endif // SDL_TTF_MAJOR_VERSION
+Texture *button_texture = nullptr;
 SDL_FRect sprite_clips[TOTAL_FRAMES];
+Button *buttons[3];
 
 int main(int argc, char *args[]) {
   if (!init()) {
@@ -98,6 +104,9 @@ int main(int argc, char *args[]) {
           break;
         }
       }
+      for (int i = 0; i < 3; i++) {
+        buttons[i]->handle_event(&e);
+      }
     }
 
     SDL_SetRenderDrawColor(g_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
@@ -118,8 +127,13 @@ int main(int argc, char *args[]) {
     sheet->render(0, SCREEN_HEIGHT - 100, &clip3);
     SDL_FRect clip4{100, 100, 100, 100};
     sheet->render(SCREEN_WIDTH - 100, SCREEN_HEIGHT - 100, &clip4);
+    for (auto button : buttons) {
+      button->render();
+    }
+#ifdef SDL_TTF_MAJOR_VERSION
     font_texture->render((SCREEN_WIDTH - font_texture->get_width()) / 2,
                          (SCREEN_HEIGHT - font_texture->get_height()) / 2);
+#endif // SDL_TTF_MAJOR_VERSION
     SDL_RenderPresent(g_renderer);
     frame_index = (frame_index + 1) % (TOTAL_FRAMES * 4);
   }
@@ -147,15 +161,26 @@ bool init() {
 
   SDL_SetRenderVSync(g_renderer, 1);
   SDL_SetRenderDrawColor(g_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+#ifdef SDL_TTF_MAJOR_VERSION
   if (!TTF_Init()) {
     SDL_Log("Could not initialize ttf. Error: %s\n", SDL_GetError());
     return false;
   }
-
+#endif // SDL_TTF_MAJOR_VERSION
+       //
   texture = new Texture(g_renderer);
   background = new Texture(g_renderer);
   sheet = new Texture(g_renderer);
+#ifdef SDL_TTF_MAJOR_VERSION
   font_texture = new Texture(g_renderer);
+#endif // SDL_TTF_MAJOR_VERSION
+  button_texture = new Texture(g_renderer);
+  for (int i = 0; i < 3; i++) {
+    buttons[i] = new Button(button_texture);
+  }
+  buttons[0]->set_position(100, 50);
+  buttons[1]->set_position(300, 200);
+  buttons[2]->set_position(300, 120);
 
   return true;
 }
@@ -167,31 +192,50 @@ bool load_media() {
   if (!texture->load_from_file("assets/foo.png")) {
     return false;
   }
+  if (!button_texture->load_from_file("assets/buttons.png")) {
+    return false;
+  }
   for (int i = 0; i < TOTAL_FRAMES; i++) {
     sprite_clips[i].x = i * 64;
     sprite_clips[i].w = 64;
     sprite_clips[i].h = 205;
   }
+#ifdef SDL_TTF_MAJOR_VERSION
   g_font = TTF_OpenFont("assets/lazy.ttf", 28);
   if (!font_texture->load_from_rendered_text(
           "The quick brown fox jumps over the lazy dog.", SDL_Color{0, 0, 0},
           g_font)) {
     return false;
   }
+#endif // SDL_TTF_MAJOR_VERSION
   return sheet->load_from_file("assets/sprites.png");
 }
 
 void close() {
-  texture->free();
-  background->free();
-  sheet->free();
-  font_texture->free();
+  delete texture;
+  texture = nullptr;
+  delete background;
+  background = nullptr;
+  delete sheet;
+  sheet = nullptr;
+  for (int i = 0; i < 3; i++) {
+    delete buttons[i];
+    buttons[i] = nullptr;
+  }
+  delete button_texture;
+  button_texture = nullptr;
+#ifdef SDL_TTF_MAJOR_VERSION
+  delete font_texture;
+  font_texture - = nullptr;
   TTF_CloseFont(g_font);
   g_font = nullptr;
+#endif // SDL_TTF_MAJOR_VERSION
   SDL_DestroyRenderer(g_renderer);
   g_renderer = nullptr;
   SDL_DestroyWindow(g_window);
   g_window = nullptr;
+#ifdef SDL_TTF_MAJOR_VERSION
   TTF_Quit();
+#endif // SDL_TTF_MAJOR_VERSION
   SDL_Quit();
 }

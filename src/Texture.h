@@ -5,7 +5,6 @@
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3_image/SDL_image.h>
-#include <SDL3_ttf/SDL_ttf.h>
 #include <cstdint>
 #include <string>
 
@@ -14,8 +13,10 @@ public:
   Texture(SDL_Renderer *renderer);
   ~Texture();
   bool load_from_file(std::string path);
+#if defined(SDL_TTF_MAJOR_VERSION)
   bool load_from_rendered_text(std::string text, SDL_Color color,
                                TTF_Font *font);
+#endif // defined (SDL_TTF_MAJOR_VERSION)
   void free();
   void set_color(uint8_t r, uint8_t g, uint8_t b);
   void set_blend_mode(SDL_BlendMode blending);
