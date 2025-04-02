@@ -258,7 +258,7 @@ SDL_Gamepad *load_gamepad(SDL_JoystickID *joysticks) {
     return gamepad;
   }
 
-  if (!SDL_GetBooleanProperty(SDL_GetGamepadProperties(g_game_pad),
+  if (!SDL_GetBooleanProperty(SDL_GetGamepadProperties(gamepad),
                               SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, false)) {
     SDL_Log("Warning: gamepad doesn't have rumble. SDL Error: %s\n",
             SDL_GetError());
