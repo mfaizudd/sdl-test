@@ -2,13 +2,16 @@
 #include "Texture.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_keyboard.h>
 #include <SDL3/SDL_keycode.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
+#include <SDL3/SDL_scancode.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3_image/SDL_image.h>
+#include <cstdint>
 #include <string>
 
 const int SCREEN_WIDTH = 640;
@@ -61,54 +64,49 @@ int main(int argc, char *args[]) {
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_EVENT_QUIT) {
         quit = true;
-      } else if (e.type == SDL_EVENT_KEY_DOWN) {
-        switch (e.key.key) {
-        case SDLK_Q:
-          r += 0x20;
-          break;
-        case SDLK_W:
-          g += 0x20;
-          break;
-        case SDLK_E:
-          b += 0x20;
-          break;
-        case SDLK_A:
-          r -= 0x20;
-          break;
-        case SDLK_S:
-          g -= 0x20;
-          break;
-        case SDLK_D:
-          b -= 0x20;
-          break;
-        case SDLK_Z:
-          degrees -= 10;
-          break;
-        case SDLK_C:
-          degrees += 10;
-          break;
-        case SDLK_UP:
-          a += 0x20;
-          break;
-        case SDLK_R:
-          flip = SDL_FLIP_HORIZONTAL;
-          break;
-        case SDLK_F:
-          flip = SDL_FLIP_NONE;
-          break;
-        case SDLK_V:
-          flip = SDL_FLIP_VERTICAL;
-          break;
-        case SDLK_DOWN:
-          a -= 0x20;
-          break;
-        }
       }
       for (int i = 0; i < 3; i++) {
         buttons[i]->handle_event(&e);
       }
+      const bool *current_key_states = SDL_GetKeyboardState(nullptr);
+      if (current_key_states[SDL_SCANCODE_Q]) {
+        r += 0x20;
+      }
+      if (current_key_states[SDL_SCANCODE_W]) {
+        g += 0x20;
+      }
+      if (current_key_states[SDL_SCANCODE_E]) {
+        b += 0x20;
+      }
+      if (current_key_states[SDL_SCANCODE_A]) {
+        r -= 0x20;
+      }
+      if (current_key_states[SDL_SCANCODE_S]) {
+        g -= 0x20;
+      }
+      if (current_key_states[SDL_SCANCODE_D]) {
+        b -= 0x20;
+      }
+      if (current_key_states[SDL_SCANCODE_Z]) {
+        degrees -= 10;
+      }
+      if (current_key_states[SDL_SCANCODE_C]) {
+        degrees += 10;
+      }
+      if (current_key_states[SDL_SCANCODE_R]) {
+        flip = SDL_FLIP_NONE;
+      }
+      if (current_key_states[SDL_SCANCODE_F]) {
+        flip = (flip & SDL_FLIP_HORIZONTAL) == 0
+                   ? (SDL_FlipMode)(flip | SDL_FLIP_HORIZONTAL)
+                   : (SDL_FlipMode)(flip & ~SDL_FLIP_HORIZONTAL);
+      }
+      if (current_key_states[SDL_SCANCODE_V]) {
+        flip = (flip & SDL_FLIP_VERTICAL) == 0
+                   ? (SDL_FlipMode)(flip | SDL_FLIP_VERTICAL)
+                   : (SDL_FlipMode)(flip & ~SDL_FLIP_VERTICAL);
+      }
     }
-
     SDL_SetRenderDrawColor(g_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(g_renderer);
 
