@@ -19,10 +19,13 @@
 #include <SDL3/SDL_scancode.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_surface.h>
+#include <SDL3/SDL_timer.h>
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_mixer/SDL_mixer.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <cmath>
 #include <cstdint>
+#include <sstream>
 #include <string>
 
 const int SCREEN_WIDTH = 640;
@@ -88,6 +91,8 @@ int main(int argc, char *args[]) {
   int frame_index = 0;
   int joyX = 0;
   int joyY = 0;
+  uint64_t start_time = 0;
+  std::stringstream time_text;
   while (!quit) {
     while (SDL_PollEvent(&e) != 0) {
       if (e.type == SDL_EVENT_QUIT) {
@@ -117,6 +122,9 @@ int main(int argc, char *args[]) {
           break;
         case SDLK_0:
           Mix_HaltMusic();
+          break;
+        case SDLK_RETURN:
+          start_time = SDL_GetTicks();
           break;
         }
       } else if (e.type == SDL_EVENT_JOYSTICK_AXIS_MOTION) {
@@ -210,6 +218,12 @@ int main(int argc, char *args[]) {
       button->render();
     }
 #ifdef SDL_TTF_MAJOR_VERSION
+    time_text.str("");
+    time_text << "Milliseconds since start " << SDL_GetTicks() - start_time;
+    if (!font_texture->load_from_rendered_text(
+            time_text.str(), SDL_Color{0, 0, 0, 0xFF}, g_font)) {
+      SDL_Log("Unable to render time texture");
+    }
     font_texture->render((SCREEN_WIDTH - font_texture->get_width()) / 2,
                          (SCREEN_HEIGHT - font_texture->get_height()) / 2);
 #endif // SDL_TTF_MAJOR_VERSION
@@ -429,7 +443,7 @@ void close() {
   g_haptic = nullptr;
 #ifdef SDL_TTF_MAJOR_VERSION
   delete font_texture;
-  font_texture - = nullptr;
+  font_texture = nullptr;
   TTF_CloseFont(g_font);
   g_font = nullptr;
 #endif // SDL_TTF_MAJOR_VERSION
