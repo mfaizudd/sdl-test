@@ -2,13 +2,17 @@
 #include "Texture.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_gamepad.h>
+#include <SDL3/SDL_haptic.h>
 #include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_joystick.h>
 #include <SDL3/SDL_keyboard.h>
 #include <SDL3/SDL_keycode.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3/SDL_oldnames.h>
 #include <SDL3/SDL_pixels.h>
+#include <SDL3/SDL_properties.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_scancode.h>
@@ -24,6 +28,9 @@ const int SCREEN_HEIGHT = 480;
 const int TOTAL_FRAMES = 4;
 const int JOYSTICK_DEADZONE = 8000;
 bool init();
+void load_inputs();
+SDL_Gamepad *load_gamepad(SDL_JoystickID *joysticks);
+SDL_Joystick *load_joystick(SDL_JoystickID *joysticks, SDL_Haptic **haptic);
 bool load_media();
 void close();
 SDL_Window *g_window = nullptr;
@@ -40,7 +47,9 @@ Texture *font_texture = nullptr;
 Texture *button_texture = nullptr;
 SDL_FRect sprite_clips[TOTAL_FRAMES];
 Button *buttons[3];
-SDL_Joystick *game_pad = nullptr;
+SDL_Gamepad *g_game_pad = nullptr;
+SDL_Joystick *g_joystick = nullptr;
+SDL_Haptic *g_haptic = nullptr;
 
 int main(int argc, char *args[]) {
   if (!init()) {
@@ -87,6 +96,18 @@ int main(int argc, char *args[]) {
           joyY = 1;
         } else if (e.jaxis.axis == 1) {
           joyY = 0;
+        }
+      } else if (e.type == SDL_EVENT_JOYSTICK_BUTTON_DOWN) {
+        if (g_game_pad != nullptr) {
+          if (!SDL_RumbleGamepad(g_game_pad, 0xFFFF * .75, 0xFFFF * .75, 500)) {
+            SDL_Log("Warning: unable to start gamepad rumble. SDL Error: %s\n",
+                    SDL_GetError());
+          }
+        } else if (g_haptic != nullptr) {
+          if (!SDL_PlayHapticRumble(g_haptic, .75, 500)) {
+            SDL_Log("Warning: unable to start haptic rumble. SDL Error: %s\n",
+                    SDL_GetError());
+          }
         }
       }
       for (int i = 0; i < 3; i++) {
@@ -166,7 +187,8 @@ int main(int argc, char *args[]) {
 
 bool init() {
   // Initialize SDL
-  if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK)) {
+  if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC |
+                SDL_INIT_GAMEPAD)) {
     SDL_Log("Could not initialize SDL. Error: %s\n", SDL_GetError());
     return false;
   }
@@ -202,27 +224,74 @@ bool init() {
   buttons[0]->set_position(100, 50);
   buttons[1]->set_position(300, 200);
   buttons[2]->set_position(300, 120);
+  load_inputs();
+  return true;
+}
+
+void load_inputs() {
   SDL_JoystickID *joysticks = SDL_GetJoysticks(nullptr);
   if (!joysticks) {
-    return true;
-  }
-
-  if (!joysticks[0]) {
     SDL_Log("Warning: no joysticks connected");
-    SDL_free(joysticks);
-    return true;
+    return;
   }
 
-  game_pad = SDL_OpenJoystick(joysticks[0]);
-  if (game_pad == nullptr) {
-    SDL_Log("Warning: unable to open game controller. SDL Error: %s\n",
-            SDL_GetError());
-    SDL_free(joysticks);
-    return true;
+  g_game_pad = load_gamepad(joysticks);
+  if (g_game_pad == nullptr) {
+    g_joystick = load_joystick(joysticks, &g_haptic);
   }
 
   SDL_free(joysticks);
-  return true;
+}
+
+SDL_Gamepad *load_gamepad(SDL_JoystickID *joysticks) {
+  SDL_Gamepad *gamepad = nullptr;
+  if (!SDL_IsGamepad(joysticks[0])) {
+    SDL_Log("Warning: joystick is not a gamepad interface. SDL Error: %s\n",
+            SDL_GetError());
+    return gamepad;
+  }
+
+  gamepad = SDL_OpenGamepad(joysticks[0]);
+  if (gamepad == nullptr) {
+    SDL_Log("Warning: unable to open game controller. SDL Error: %s\n",
+            SDL_GetError());
+    return gamepad;
+  }
+
+  if (!SDL_GetBooleanProperty(SDL_GetGamepadProperties(g_game_pad),
+                              SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, false)) {
+    SDL_Log("Warning: gamepad doesn't have rumble. SDL Error: %s\n",
+            SDL_GetError());
+  }
+  return gamepad;
+}
+
+SDL_Joystick *load_joystick(SDL_JoystickID *joysticks, SDL_Haptic **haptic) {
+  SDL_Joystick *joystick = SDL_OpenJoystick(joysticks[0]);
+  if (joystick == nullptr) {
+    SDL_Log("Warning: unable to open joystick. SDL Error: %s\n",
+            SDL_GetError());
+    return nullptr;
+  }
+
+  if (!SDL_IsJoystickHaptic(joystick)) {
+    SDL_Log("Warning: joystick doens't support haptic");
+    return joystick;
+  }
+
+  *haptic = SDL_OpenHapticFromJoystick(joystick);
+  if (*haptic == nullptr) {
+    SDL_Log("Warning: could not open haptic from joystic. SDL Error: %s\n",
+            SDL_GetError());
+    return joystick;
+  }
+
+  if (!SDL_InitHapticRumble(*haptic)) {
+    SDL_Log("Warning: could not initialize haptic rumble. SDL Error: %s\n",
+            SDL_GetError());
+    return joystick;
+  }
+  return joystick;
 }
 
 bool load_media() {
@@ -264,7 +333,12 @@ void close() {
   }
   delete button_texture;
   button_texture = nullptr;
-  SDL_CloseJoystick(game_pad);
+  SDL_CloseGamepad(g_game_pad);
+  SDL_CloseJoystick(g_joystick);
+  SDL_CloseHaptic(g_haptic);
+  g_game_pad = nullptr;
+  g_joystick = nullptr;
+  g_haptic = nullptr;
 #ifdef SDL_TTF_MAJOR_VERSION
   delete font_texture;
   font_texture - = nullptr;
