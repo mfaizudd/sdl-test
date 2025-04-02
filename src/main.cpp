@@ -1,6 +1,7 @@
 #include "Button.h"
 #include "Texture.h"
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_audio.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_haptic.h>
@@ -19,6 +20,7 @@
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3_image/SDL_image.h>
+#include <SDL3_mixer/SDL_mixer.h>
 #include <cmath>
 #include <cstdint>
 #include <string>
@@ -51,6 +53,14 @@ SDL_Gamepad *g_game_pad = nullptr;
 SDL_Joystick *g_joystick = nullptr;
 SDL_Haptic *g_haptic = nullptr;
 
+// Mixer stuffs
+Mix_Music *g_music = nullptr;
+
+Mix_Chunk *g_scratch = nullptr;
+Mix_Chunk *g_high = nullptr;
+Mix_Chunk *g_medium = nullptr;
+Mix_Chunk *g_low = nullptr;
+
 int main(int argc, char *args[]) {
   if (!init()) {
     SDL_Log("Failed to initialize\n");
@@ -82,6 +92,33 @@ int main(int argc, char *args[]) {
     while (SDL_PollEvent(&e) != 0) {
       if (e.type == SDL_EVENT_QUIT) {
         quit = true;
+      } else if (e.type == SDL_EVENT_KEY_DOWN) {
+        switch (e.key.key) {
+        case SDLK_1:
+          Mix_PlayChannel(-1, g_high, 0);
+          break;
+        case SDLK_2:
+          Mix_PlayChannel(-1, g_medium, 0);
+          break;
+        case SDLK_3:
+          Mix_PlayChannel(-1, g_low, 0);
+          break;
+        case SDLK_4:
+          Mix_PlayChannel(-1, g_scratch, 0);
+          break;
+        case SDLK_9:
+          if (!Mix_PlayingMusic()) {
+            Mix_PlayMusic(g_music, 0);
+          } else if (!Mix_PausedMusic()) {
+            Mix_PauseMusic();
+          } else {
+            Mix_ResumeMusic();
+          }
+          break;
+        case SDLK_0:
+          Mix_HaltMusic();
+          break;
+        }
       } else if (e.type == SDL_EVENT_JOYSTICK_AXIS_MOTION) {
         if (e.jaxis.axis == 0 && e.jaxis.value < -JOYSTICK_DEADZONE) {
           joyX = -1;
@@ -188,7 +225,7 @@ int main(int argc, char *args[]) {
 bool init() {
   // Initialize SDL
   if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC |
-                SDL_INIT_GAMEPAD)) {
+                SDL_INIT_GAMEPAD | SDL_INIT_AUDIO)) {
     SDL_Log("Could not initialize SDL. Error: %s\n", SDL_GetError());
     return false;
   }
@@ -210,7 +247,14 @@ bool init() {
     return false;
   }
 #endif // SDL_TTF_MAJOR_VERSION
-       //
+  SDL_AudioSpec audio_spec{};
+  audio_spec.format = MIX_DEFAULT_FORMAT;
+  audio_spec.channels = 2;
+  audio_spec.freq = 44100;
+  if (!Mix_OpenAudio(0, &audio_spec)) {
+    SDL_Log("Could not initialize SDL Mixer. SDL Error: %s\n", SDL_GetError());
+    return false;
+  }
   texture = new Texture(g_renderer);
   background = new Texture(g_renderer);
   sheet = new Texture(g_renderer);
@@ -309,6 +353,38 @@ bool load_media() {
     sprite_clips[i].w = 64;
     sprite_clips[i].h = 205;
   }
+  g_music = Mix_LoadMUS("assets/sounds/beat.wav");
+  if (g_music == nullptr) {
+    SDL_Log("Failed to load beat music. SDL Error: %s\n", SDL_GetError());
+    return false;
+  }
+
+  g_scratch = Mix_LoadWAV("assets/sounds/scratch.wav");
+  if (g_scratch == nullptr) {
+    SDL_Log("Failed to load scratch sound effect. SDL Error: %s\n",
+            SDL_GetError());
+    return false;
+  }
+
+  g_high = Mix_LoadWAV("assets/sounds/high.wav");
+  if (g_high == nullptr) {
+    SDL_Log("Failed to load high sound effect. SDL Error: %s\n",
+            SDL_GetError());
+    return false;
+  }
+
+  g_medium = Mix_LoadWAV("assets/sounds/medium.wav");
+  if (g_medium == nullptr) {
+    SDL_Log("Failed to load medium sound effect. SDL Error: %s\n",
+            SDL_GetError());
+    return false;
+  }
+
+  g_low = Mix_LoadWAV("assets/sounds/low.wav");
+  if (g_low == nullptr) {
+    SDL_Log("Failed to load low sound effect. SDL Error: %s\n", SDL_GetError());
+    return false;
+  }
 #ifdef SDL_TTF_MAJOR_VERSION
   g_font = TTF_OpenFont("assets/lazy.ttf", 28);
   if (!font_texture->load_from_rendered_text(
@@ -333,6 +409,18 @@ void close() {
   }
   delete button_texture;
   button_texture = nullptr;
+
+  Mix_FreeChunk(g_low);
+  Mix_FreeChunk(g_medium);
+  Mix_FreeChunk(g_high);
+  Mix_FreeChunk(g_scratch);
+  Mix_FreeMusic(g_music);
+  g_low = nullptr;
+  g_medium = nullptr;
+  g_high = nullptr;
+  g_scratch = nullptr;
+  g_music = nullptr;
+
   SDL_CloseGamepad(g_game_pad);
   SDL_CloseJoystick(g_joystick);
   SDL_CloseHaptic(g_haptic);
@@ -352,5 +440,6 @@ void close() {
 #ifdef SDL_TTF_MAJOR_VERSION
   TTF_Quit();
 #endif // SDL_TTF_MAJOR_VERSION
+  Mix_Quit();
   SDL_Quit();
 }

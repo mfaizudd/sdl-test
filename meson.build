@@ -2,10 +2,12 @@ project('sdl-test', 'cpp')
 sdl3_dep = dependency('sdl3')
 sdl3_image_dep = dependency('SDL3_image')
 sdl3_ttf_dep = dependency('SDL3_ttf')
+sdl3_mixer_dep = dependency('SDL3_mixer')
 deps = [
   sdl3_dep,
   sdl3_image_dep,
   sdl3_ttf_dep,
+  sdl3_mixer_dep,
 ]
 includes = include_directories([
   'src',
