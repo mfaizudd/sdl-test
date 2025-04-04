@@ -293,7 +293,7 @@ bool init() {
     return false;
   }
 
-  // SDL_SetRenderVSync(g_renderer, 1);
+  SDL_SetRenderVSync(g_renderer, 1);
   SDL_SetRenderDrawColor(g_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 #ifdef SDL_TTF_MAJOR_VERSION
   if (!TTF_Init()) {
