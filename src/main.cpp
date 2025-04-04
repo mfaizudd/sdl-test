@@ -1,5 +1,6 @@
 #include "Button.h"
 #include "Texture.h"
+#include "Timer.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_audio.h>
 #include <SDL3/SDL_events.h>
@@ -91,7 +92,7 @@ int main(int argc, char *args[]) {
   int frame_index = 0;
   int joyX = 0;
   int joyY = 0;
-  uint64_t start_time = 0;
+  Timer timer;
   std::stringstream time_text;
   while (!quit) {
     while (SDL_PollEvent(&e) != 0) {
@@ -124,7 +125,18 @@ int main(int argc, char *args[]) {
           Mix_HaltMusic();
           break;
         case SDLK_RETURN:
-          start_time = SDL_GetTicks();
+          if (!timer.is_started()) {
+            timer.start();
+          } else {
+            timer.stop();
+          }
+          break;
+        case SDLK_P:
+          if (!timer.is_paused()) {
+            timer.pause();
+          } else {
+            timer.resume();
+          }
           break;
         }
       } else if (e.type == SDL_EVENT_JOYSTICK_AXIS_MOTION) {
@@ -218,11 +230,13 @@ int main(int argc, char *args[]) {
       button->render();
     }
 #ifdef SDL_TTF_MAJOR_VERSION
-    time_text.str("");
-    time_text << "Milliseconds since start " << SDL_GetTicks() - start_time;
-    if (!font_texture->load_from_rendered_text(
-            time_text.str(), SDL_Color{0, 0, 0, 0xFF}, g_font)) {
-      SDL_Log("Unable to render time texture");
+    if (timer.is_started()) {
+      time_text.str("");
+      time_text << "Seconds since start " << timer.get_ticks() / 1000;
+      if (!font_texture->load_from_rendered_text(
+              time_text.str(), SDL_Color{0, 0, 0, 0xFF}, g_font)) {
+        SDL_Log("Unable to render time texture");
+      }
     }
     font_texture->render((SCREEN_WIDTH - font_texture->get_width()) / 2,
                          (SCREEN_HEIGHT - font_texture->get_height()) / 2);
