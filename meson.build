@@ -17,5 +17,6 @@ sources = [
   'src/Texture.cpp',
   'src/Button.cpp',
   'src/Timer.cpp',
+  'src/Dot.cpp',
 ]
 executable('sdl-test', sources, dependencies: deps, include_directories: includes)

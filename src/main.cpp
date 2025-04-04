@@ -1,4 +1,6 @@
 #include "Button.h"
+#include "Dot.h"
+#include "Globals.h"
 #include "Texture.h"
 #include "Timer.h"
 #include <SDL3/SDL.h>
@@ -29,12 +31,6 @@
 #include <sstream>
 #include <string>
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
-const int SCREEN_FPS = 60;
-const int TICKS_PER_FRAME = 1000 / SCREEN_FPS;
-const int TOTAL_FRAMES = 4;
-const int JOYSTICK_DEADZONE = 8000;
 bool init();
 void load_inputs();
 SDL_Gamepad *load_gamepad(SDL_JoystickID *joysticks);
@@ -49,12 +45,14 @@ TTF_Font *g_font = nullptr;
 Texture *texture = nullptr;
 Texture *background = nullptr;
 Texture *sheet = nullptr;
+Texture *dot_texture = nullptr;
 #ifdef SDL_TTF_MAJOR_VERSION
 Texture *font_texture = nullptr;
 #endif // SDL_TTF_MAJOR_VERSION
 Texture *button_texture = nullptr;
 SDL_FRect sprite_clips[TOTAL_FRAMES];
 Button *buttons[3];
+Dot *dot;
 SDL_Gamepad *g_game_pad = nullptr;
 SDL_Joystick *g_joystick = nullptr;
 SDL_Haptic *g_haptic = nullptr;
@@ -99,8 +97,12 @@ int main(int argc, char *args[]) {
   bool cap_fps = false;
   uint64_t frame_count = 0;
   std::stringstream time_text;
+  float dt = .0f;
+  float last_tick = SDL_GetTicks() / 1000.0f;
   while (!quit) {
     cap_timer.start();
+    dt = (SDL_GetTicks() / 1000.0f) - last_tick;
+    last_tick = SDL_GetTicks() / 1000.0f;
     while (SDL_PollEvent(&e) != 0) {
       if (e.type == SDL_EVENT_QUIT) {
         quit = true;
@@ -181,9 +183,14 @@ int main(int argc, char *args[]) {
           }
         }
       }
+
+      // object handlers
       for (int i = 0; i < 3; i++) {
         buttons[i]->handle_event(&e);
       }
+      dot->handle_event(&e);
+
+      // handling key states
       const bool *current_key_states = SDL_GetKeyboardState(nullptr);
       if (current_key_states[SDL_SCANCODE_Q]) {
         r += 0x20;
@@ -243,6 +250,7 @@ int main(int argc, char *args[]) {
     for (auto button : buttons) {
       button->render();
     }
+    dot->update(dt);
 #ifdef SDL_TTF_MAJOR_VERSION
     if (fps_timer.is_started()) {
       time_text.str("");
@@ -316,12 +324,15 @@ bool init() {
   font_texture = new Texture(g_renderer);
 #endif // SDL_TTF_MAJOR_VERSION
   button_texture = new Texture(g_renderer);
+  dot_texture = new Texture(g_renderer);
   for (int i = 0; i < 3; i++) {
     buttons[i] = new Button(button_texture);
   }
   buttons[0]->set_position(100, 50);
   buttons[1]->set_position(300, 400);
   buttons[2]->set_position(300, 120);
+  dot = new Dot(dot_texture);
+
   load_inputs();
   return true;
 }
@@ -402,6 +413,9 @@ bool load_media() {
   if (!button_texture->load_from_file("assets/buttons.png")) {
     return false;
   }
+  if (!dot_texture->load_from_file("assets/dot.png")) {
+    return false;
+  }
   for (int i = 0; i < TOTAL_FRAMES; i++) {
     sprite_clips[i].x = i * 64;
     sprite_clips[i].w = 64;
@@ -463,6 +477,10 @@ void close() {
   }
   delete button_texture;
   button_texture = nullptr;
+  delete dot;
+  dot = nullptr;
+  delete dot_texture;
+  dot_texture = nullptr;
 
   Mix_FreeChunk(g_low);
   Mix_FreeChunk(g_medium);
