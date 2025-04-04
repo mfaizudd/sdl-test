@@ -10,9 +10,6 @@ Timer::Timer() {
 }
 
 void Timer::start() {
-  if (this->started) {
-    return;
-  }
   this->started = true;
   this->start_ticks = SDL_GetTicks();
 }

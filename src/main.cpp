@@ -31,6 +31,8 @@
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
+const int SCREEN_FPS = 60;
+const int TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 const int TOTAL_FRAMES = 4;
 const int JOYSTICK_DEADZONE = 8000;
 bool init();
@@ -92,10 +94,13 @@ int main(int argc, char *args[]) {
   int frame_index = 0;
   int joyX = 0;
   int joyY = 0;
-  Timer timer;
+  Timer fps_timer;
+  Timer cap_timer;
+  bool cap_fps = false;
   uint64_t frame_count = 0;
   std::stringstream time_text;
   while (!quit) {
+    cap_timer.start();
     while (SDL_PollEvent(&e) != 0) {
       if (e.type == SDL_EVENT_QUIT) {
         quit = true;
@@ -126,18 +131,25 @@ int main(int argc, char *args[]) {
           Mix_HaltMusic();
           break;
         case SDLK_RETURN:
-          if (!timer.is_started()) {
-            timer.start();
+          if (!fps_timer.is_started()) {
+            fps_timer.start();
             frame_count = 0;
           } else {
-            timer.stop();
+            fps_timer.stop();
           }
           break;
         case SDLK_P:
-          if (!timer.is_paused()) {
-            timer.pause();
+          if (!fps_timer.is_paused()) {
+            fps_timer.pause();
           } else {
-            timer.resume();
+            fps_timer.resume();
+          }
+          break;
+        case SDLK_BACKSLASH:
+          cap_fps = !cap_fps;
+          frame_count = 0;
+          if (fps_timer.is_started()) {
+            fps_timer.start();
           }
           break;
         }
@@ -232,10 +244,10 @@ int main(int argc, char *args[]) {
       button->render();
     }
 #ifdef SDL_TTF_MAJOR_VERSION
-    if (timer.is_started()) {
+    if (fps_timer.is_started()) {
       time_text.str("");
-      float averageFPS = frame_count / (timer.get_ticks() / 1000.0f);
-      time_text << "Seconds since start " << timer.get_ticks() / 1000.0f
+      float averageFPS = frame_count / (fps_timer.get_ticks() / 1000.0f);
+      time_text << "Seconds since start " << fps_timer.get_ticks() / 1000.0f
                 << std::endl
                 << "Average FPS: " << averageFPS;
       if (!font_texture->load_from_rendered_text(
@@ -248,8 +260,14 @@ int main(int argc, char *args[]) {
 #endif // SDL_TTF_MAJOR_VERSION
     SDL_RenderPresent(g_renderer);
     frame_index = (frame_index + 1) % (TOTAL_FRAMES * 4);
-    if (timer.is_started() && !timer.is_paused()) {
+    if (fps_timer.is_started() && !fps_timer.is_paused()) {
       frame_count++;
+    }
+    if (cap_fps) {
+      uint64_t frame_ticks = cap_timer.get_ticks();
+      if (frame_ticks < TICKS_PER_FRAME) {
+        SDL_Delay(TICKS_PER_FRAME - frame_ticks);
+      }
     }
   }
 
@@ -275,7 +293,7 @@ bool init() {
     return false;
   }
 
-  SDL_SetRenderVSync(g_renderer, 1);
+  // SDL_SetRenderVSync(g_renderer, 1);
   SDL_SetRenderDrawColor(g_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 #ifdef SDL_TTF_MAJOR_VERSION
   if (!TTF_Init()) {
