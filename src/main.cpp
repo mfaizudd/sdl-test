@@ -93,6 +93,7 @@ int main(int argc, char *args[]) {
   int joyX = 0;
   int joyY = 0;
   Timer timer;
+  uint64_t frame_count = 0;
   std::stringstream time_text;
   while (!quit) {
     while (SDL_PollEvent(&e) != 0) {
@@ -127,6 +128,7 @@ int main(int argc, char *args[]) {
         case SDLK_RETURN:
           if (!timer.is_started()) {
             timer.start();
+            frame_count = 0;
           } else {
             timer.stop();
           }
@@ -232,7 +234,10 @@ int main(int argc, char *args[]) {
 #ifdef SDL_TTF_MAJOR_VERSION
     if (timer.is_started()) {
       time_text.str("");
-      time_text << "Seconds since start " << timer.get_ticks() / 1000;
+      float averageFPS = frame_count / (timer.get_ticks() / 1000.0f);
+      time_text << "Seconds since start " << timer.get_ticks() / 1000.0f
+                << std::endl
+                << "Average FPS: " << averageFPS;
       if (!font_texture->load_from_rendered_text(
               time_text.str(), SDL_Color{0, 0, 0, 0xFF}, g_font)) {
         SDL_Log("Unable to render time texture");
@@ -243,6 +248,9 @@ int main(int argc, char *args[]) {
 #endif // SDL_TTF_MAJOR_VERSION
     SDL_RenderPresent(g_renderer);
     frame_index = (frame_index + 1) % (TOTAL_FRAMES * 4);
+    if (timer.is_started() && !timer.is_paused()) {
+      frame_count++;
+    }
   }
 
   close();
@@ -294,7 +302,7 @@ bool init() {
     buttons[i] = new Button(button_texture);
   }
   buttons[0]->set_position(100, 50);
-  buttons[1]->set_position(300, 200);
+  buttons[1]->set_position(300, 400);
   buttons[2]->set_position(300, 120);
   load_inputs();
   return true;
