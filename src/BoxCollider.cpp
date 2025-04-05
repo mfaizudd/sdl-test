@@ -1,0 +1,39 @@
+#include "BoxCollider.h"
+#include "Dimension.h"
+#include <glm/ext/vector_float2.hpp>
+#include <memory>
+
+BoxCollider::BoxCollider(float width, float height) {
+  this->dimension = {width, height};
+}
+
+BoxCollider::BoxCollider(float x, float y, float width, float height)
+    : BoxCollider(width, height) {
+  this->set_position(x, y);
+}
+
+BoxCollider::BoxCollider(std::shared_ptr<Transform> parent, float width,
+                         float height)
+    : BoxCollider(width, height) {
+  this->parent = parent;
+}
+
+void BoxCollider::set_dimension(float width, float height) {
+  this->dimension.width = width;
+  this->dimension.height = height;
+}
+
+void BoxCollider::set_position(float x, float y) {
+  this->position.x = x;
+  this->position.y = y;
+}
+
+Dimension BoxCollider::get_dimension() const { return this->dimension; }
+
+glm::vec2 BoxCollider::get_position() const {
+  if (!this->parent.has_value()) {
+    return this->position;
+  }
+  auto parent = this->parent.value();
+  return parent->get_position() + this->position;
+}

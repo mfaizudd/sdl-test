@@ -1,7 +1,11 @@
 #pragma once
+#include "BoxCollider.h"
 #include "Texture.h"
+#include "Transform.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_rect.h>
+#include <glm/ext/vector_float2.hpp>
+#include <memory>
 class Dot {
 public:
   static const int DOT_WIDTH = 20;
@@ -13,6 +17,7 @@ public:
 
 private:
   Texture *texture = nullptr;
-  SDL_FPoint position{0, 0};
-  SDL_FPoint velocity{0, 0};
+  std::shared_ptr<Transform> transform = nullptr;
+  std::shared_ptr<BoxCollider> collider = nullptr;
+  glm::vec2 velocity{0, 0};
 };

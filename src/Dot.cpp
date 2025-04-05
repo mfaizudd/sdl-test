@@ -1,11 +1,13 @@
 #include "Dot.h"
+#include "BoxCollider.h"
 #include "Globals.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_keycode.h>
+#include <memory>
 
 Dot::Dot(Texture *texture) : texture(texture) {
-  this->position.x = SCREEN_WIDTH / 2.0f;
-  this->position.y = SCREEN_HEIGHT / 2.0f;
+  this->transform = std::make_shared<Transform>();
+  this->collider = std::make_shared<BoxCollider>(this->transform, 20, 20);
 }
 
 void Dot::handle_event(const SDL_Event *e) {
@@ -43,13 +45,18 @@ void Dot::handle_event(const SDL_Event *e) {
 }
 
 void Dot::update(float dt) {
-  this->position.x += this->velocity.x * dt;
-  this->position.y += this->velocity.y * dt;
-  if (this->position.x < 0 || this->position.x + DOT_WIDTH > SCREEN_WIDTH) {
-    this->position.x -= this->velocity.x;
+  auto position = this->transform->get_position();
+  auto moved = position + this->velocity * dt;
+  this->transform->set_position(moved.x, moved.y);
+  if (moved.x < 0 || moved.x + DOT_WIDTH > SCREEN_WIDTH ||
+      check_collision(this->collider, g_wall)) {
+    moved.x -= this->velocity.x * dt;
   }
-  if (this->position.y < 0 || this->position.y + DOT_HEIGHT > SCREEN_HEIGHT) {
-    this->position.y -= this->velocity.y;
+  if (moved.y < 0 || moved.y + DOT_HEIGHT > SCREEN_HEIGHT ||
+      check_collision(this->collider, g_wall)) {
+    moved.y -= this->velocity.y * dt;
   }
-  this->texture->render(this->position.x, this->position.y);
+  this->transform->set_position(moved.x, moved.y);
+  position = this->transform->get_position();
+  this->texture->render(position.x, position.y);
 }

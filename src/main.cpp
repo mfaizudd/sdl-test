@@ -1,3 +1,4 @@
+#include "BoxCollider.h"
 #include "Button.h"
 #include "Dot.h"
 #include "Globals.h"
@@ -28,6 +29,7 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <cmath>
 #include <cstdint>
+#include <memory>
 #include <sstream>
 #include <string>
 
