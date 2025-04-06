@@ -22,18 +22,20 @@ inline bool check_collision(std::shared_ptr<BoxCollider> a,
   int bottom_a, bottom_b;
 
   auto a_pos = a->get_position();
-  auto a_dim = a->get_dimension();
+  auto a_width = a->get_width();
+  auto a_height = a->get_height();
   left_a = a_pos.x;
-  right_a = a_pos.x + a_dim.width;
+  right_a = a_pos.x + a_width;
   top_a = a_pos.y;
-  bottom_a = a_pos.y + a_dim.height;
+  bottom_a = a_pos.y + a_height;
 
   auto b_pos = b->get_position();
-  auto b_dim = b->get_dimension();
+  auto b_width = b->get_width();
+  auto b_height = b->get_height();
   left_b = b_pos.x;
-  right_b = b_pos.x + b_dim.width;
+  right_b = b_pos.x + b_width;
   top_b = b_pos.y;
-  bottom_b = b_pos.y + b_dim.height;
+  bottom_b = b_pos.y + b_height;
 
   // given that y = -y
   if (bottom_a <= top_b) {

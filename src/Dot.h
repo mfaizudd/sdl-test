@@ -1,5 +1,5 @@
 #pragma once
-#include "BoxCollider.h"
+#include "CircleCollider.h"
 #include "Texture.h"
 #include "Transform.h"
 #include <SDL3/SDL_events.h>
@@ -18,6 +18,6 @@ public:
 private:
   Texture *texture = nullptr;
   std::shared_ptr<Transform> transform = nullptr;
-  std::shared_ptr<BoxCollider> collider = nullptr;
+  std::shared_ptr<CircleCollider> collider = nullptr;
   glm::vec2 velocity{0, 0};
 };

@@ -1,5 +1,5 @@
 #include "Dot.h"
-#include "BoxCollider.h"
+#include "CircleCollider.h"
 #include "Globals.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_keycode.h>
@@ -7,7 +7,7 @@
 
 Dot::Dot(Texture *texture) : texture(texture) {
   this->transform = std::make_shared<Transform>();
-  this->collider = std::make_shared<BoxCollider>(this->transform, 20, 20);
+  this->collider = std::make_shared<CircleCollider>(this->transform, 10);
 }
 
 void Dot::handle_event(const SDL_Event *e) {
