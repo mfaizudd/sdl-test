@@ -1,8 +1,12 @@
 #pragma once
 
 #include "BoxCollider.h"
+#include "CircleCollider.h"
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_rect.h>
+#include <cmath>
+#include <glm/ext/vector_float2.hpp>
+#include <glm/geometric.hpp>
 #include <memory>
 
 const int SCREEN_WIDTH = 640;
@@ -55,4 +59,31 @@ inline bool check_collision(std::shared_ptr<BoxCollider> a,
   }
 
   return true;
+}
+
+inline bool check_collision(std::shared_ptr<CircleCollider> a,
+                            std::shared_ptr<BoxCollider> b) {
+  // x axis closest point
+  glm::vec2 c{0, 0};
+  auto a_pos = a->get_position();
+  auto b_pos = b->get_position();
+  if (a_pos.x < b_pos.x) {
+    c.x = b_pos.x;
+  } else if (a_pos.x > b_pos.x + b->get_width()) {
+    c.x = b_pos.x + b->get_width();
+  } else {
+    c.x = a_pos.x;
+  }
+
+  if (a_pos.y < b_pos.y) {
+    c.y = b_pos.y;
+  } else if (a_pos.y > b_pos.y + b->get_height()) {
+    c.y = b_pos.y + b->get_height();
+  } else {
+    c.y = a_pos.y;
+  }
+
+  // SDL_Log("Circle(%f, %f) Closest(%f, %f) Distance(%f) Radius(%f)", a_pos.x,
+  //         a_pos.y, c.x, c.y, glm::distance(a_pos, c), a->get_radius());
+  return glm::distance(a_pos, c) < a->get_radius();
 }

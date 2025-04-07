@@ -334,6 +334,7 @@ bool init() {
   buttons[1]->set_position(300, 400);
   buttons[2]->set_position(300, 120);
   dot = new Dot(dot_texture);
+  dot->set_position(10, 10);
 
   load_inputs();
   return true;

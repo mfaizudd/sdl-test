@@ -13,6 +13,7 @@ public:
   static const int DOT_VEL = 200;
   Dot(Texture *texture);
   void handle_event(const SDL_Event *e);
+  void set_position(float x, float y);
   void update(float dt);
 
 private:

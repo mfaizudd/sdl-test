@@ -22,5 +22,6 @@ sources = [
   'src/Dot.cpp',
   'src/BoxCollider.cpp',
   'src/Transform.cpp',
+  'src/CircleCollider.cpp',
 ]
 executable('sdl-test', sources, dependencies: deps, include_directories: includes)

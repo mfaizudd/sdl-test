@@ -8,6 +8,7 @@
 Dot::Dot(Texture *texture) : texture(texture) {
   this->transform = std::make_shared<Transform>();
   this->collider = std::make_shared<CircleCollider>(this->transform, 10);
+  this->collider->set_position(DOT_WIDTH / 2.0f, DOT_HEIGHT / 2.0f);
 }
 
 void Dot::handle_event(const SDL_Event *e) {
@@ -42,6 +43,10 @@ void Dot::handle_event(const SDL_Event *e) {
       break;
     }
   }
+}
+
+void Dot::set_position(float x, float y) {
+  this->transform->set_position(x, y);
 }
 
 void Dot::update(float dt) {
