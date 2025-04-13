@@ -1,17 +1,19 @@
-#include "Dot.h"
+#include "GameObject.h"
 #include "CircleCollider.h"
 #include "Globals.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_keycode.h>
+#include <glm/ext/vector_float2.hpp>
 #include <memory>
 
-Dot::Dot(Texture *texture) : texture(texture) {
+GameObject::GameObject(Texture *texture) : texture(texture) {
   this->transform = std::make_shared<Transform>();
   this->collider = std::make_shared<CircleCollider>(this->transform, 10);
   this->collider->set_position(DOT_WIDTH / 2.0f, DOT_HEIGHT / 2.0f);
 }
 
-void Dot::handle_event(const SDL_Event *e) {
+// TODO: extract this
+void GameObject::handle_event(const SDL_Event *e) {
   if (e->type == SDL_EVENT_KEY_DOWN && !e->key.repeat) {
     switch (e->key.key) {
     case SDLK_UP:
@@ -45,23 +47,33 @@ void Dot::handle_event(const SDL_Event *e) {
   }
 }
 
-void Dot::set_position(float x, float y) {
+void GameObject::set_position(float x, float y) {
   this->transform->set_position(x, y);
 }
 
-void Dot::update(float dt) {
+glm::vec2 GameObject::get_position() { return this->transform->get_position(); }
+
+void GameObject::update(float dt) {
   auto position = this->transform->get_position();
   auto moved = position + this->velocity * dt;
   this->transform->set_position(moved.x, moved.y);
-  if (moved.x < 0 || moved.x + DOT_WIDTH > SCREEN_WIDTH ||
+  if (moved.x < 0 || moved.x + DOT_WIDTH > LEVEL_WIDTH ||
       check_collision(this->collider, g_wall)) {
     moved.x -= this->velocity.x * dt;
   }
-  if (moved.y < 0 || moved.y + DOT_HEIGHT > SCREEN_HEIGHT ||
+  if (moved.y < 0 || moved.y + DOT_HEIGHT > LEVEL_HEIGHT ||
       check_collision(this->collider, g_wall)) {
     moved.y -= this->velocity.y * dt;
   }
   this->transform->set_position(moved.x, moved.y);
-  position = this->transform->get_position();
-  this->texture->render(position.x, position.y);
+}
+
+void GameObject::render(glm::vec2 camPos) {
+  auto screenPos = this->get_position() - camPos;
+  // if (screenPos.x + DOT_WIDTH < 0 || screenPos.x > SCREEN_WIDTH ||
+  //     screenPos.y + DOT_HEIGHT < 0 || screenPos.y > SCREEN_HEIGHT) {
+  //   return;
+  // }
+
+  this->texture->render(screenPos.x, screenPos.y);
 }

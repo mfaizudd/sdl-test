@@ -1,6 +1,5 @@
-#include "BoxCollider.h"
 #include "Button.h"
-#include "Dot.h"
+#include "GameObject.h"
 #include "Globals.h"
 #include "Texture.h"
 #include "Timer.h"
@@ -29,6 +28,8 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <cmath>
 #include <cstdint>
+#include <glm/detail/qualifier.hpp>
+#include <glm/ext/vector_float2.hpp>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -45,7 +46,7 @@ SDL_Renderer *g_renderer = nullptr;
 TTF_Font *g_font = nullptr;
 #endif // SDL_TTF_MAJOR_VERSION
 Texture *texture = nullptr;
-Texture *background = nullptr;
+Texture *background_texture = nullptr;
 Texture *sheet = nullptr;
 Texture *dot_texture = nullptr;
 #ifdef SDL_TTF_MAJOR_VERSION
@@ -54,7 +55,8 @@ Texture *font_texture = nullptr;
 Texture *button_texture = nullptr;
 SDL_FRect sprite_clips[TOTAL_FRAMES];
 Button *buttons[3];
-Dot *dot;
+std::unique_ptr<GameObject> dot;
+std::unique_ptr<GameObject> background;
 SDL_Gamepad *g_game_pad = nullptr;
 SDL_Joystick *g_joystick = nullptr;
 SDL_Haptic *g_haptic = nullptr;
@@ -101,6 +103,7 @@ int main(int argc, char *args[]) {
   std::stringstream time_text;
   float dt = .0f;
   float last_tick = SDL_GetTicks() / 1000.0f;
+  glm::vec2 camera_pos{0, 0};
   while (!quit) {
     cap_timer.start();
     dt = (SDL_GetTicks() / 1000.0f) - last_tick;
@@ -234,8 +237,7 @@ int main(int argc, char *args[]) {
       degrees = 0;
     }
 
-    background->set_color(r, g, b);
-    background->render(0, 0);
+    background_texture->set_color(r, g, b);
     SDL_FRect *frame_clip = &sprite_clips[frame_index / 4];
     SDL_FPoint center{frame_clip->w / 2, frame_clip->h / 2};
     texture->render(240, 190, frame_clip, degrees, &center, flip);
@@ -252,7 +254,12 @@ int main(int argc, char *args[]) {
     for (auto button : buttons) {
       button->render();
     }
+    auto dot_pos = dot->get_position();
+    camera_pos.x = dot_pos.x + dot->DOT_WIDTH / 2.0 - SCREEN_WIDTH / 2.0;
+    camera_pos.y = dot_pos.y + dot->DOT_HEIGHT / 2.0 - SCREEN_HEIGHT / 2.0;
+    background->render(camera_pos);
     dot->update(dt);
+    dot->render(camera_pos);
 #ifdef SDL_TTF_MAJOR_VERSION
     if (fps_timer.is_started()) {
       time_text.str("");
@@ -320,7 +327,7 @@ bool init() {
     return false;
   }
   texture = new Texture(g_renderer);
-  background = new Texture(g_renderer);
+  background_texture = new Texture(g_renderer);
   sheet = new Texture(g_renderer);
 #ifdef SDL_TTF_MAJOR_VERSION
   font_texture = new Texture(g_renderer);
@@ -333,8 +340,10 @@ bool init() {
   buttons[0]->set_position(100, 50);
   buttons[1]->set_position(300, 400);
   buttons[2]->set_position(300, 120);
-  dot = new Dot(dot_texture);
+  dot = std::make_unique<GameObject>(dot_texture);
   dot->set_position(10, 10);
+  background = std::make_unique<GameObject>(background_texture);
+  background->set_position(0, 0);
 
   load_inputs();
   return true;
@@ -407,7 +416,7 @@ SDL_Joystick *load_joystick(SDL_JoystickID *joysticks, SDL_Haptic **haptic) {
 }
 
 bool load_media() {
-  if (!background->load_from_file("assets/background.png")) {
+  if (!background_texture->load_from_file("assets/background.png")) {
     return false;
   }
   if (!texture->load_from_file("assets/foo.png")) {
@@ -470,8 +479,8 @@ bool load_media() {
 void close() {
   delete texture;
   texture = nullptr;
-  delete background;
-  background = nullptr;
+  delete background_texture;
+  background_texture = nullptr;
   delete sheet;
   sheet = nullptr;
   for (int i = 0; i < 3; i++) {
@@ -480,8 +489,6 @@ void close() {
   }
   delete button_texture;
   button_texture = nullptr;
-  delete dot;
-  dot = nullptr;
   delete dot_texture;
   dot_texture = nullptr;
 

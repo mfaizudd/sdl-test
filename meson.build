@@ -19,7 +19,7 @@ sources = [
   'src/Texture.cpp',
   'src/Button.cpp',
   'src/Timer.cpp',
-  'src/Dot.cpp',
+  'src/GameObject.cpp',
   'src/BoxCollider.cpp',
   'src/Transform.cpp',
   'src/CircleCollider.cpp',

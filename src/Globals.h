@@ -9,6 +9,9 @@
 #include <glm/geometric.hpp>
 #include <memory>
 
+const int LEVEL_WIDTH = 1280;
+const int LEVEL_HEIGHT = 960;
+
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 const float SCREEN_FPS = 60;
