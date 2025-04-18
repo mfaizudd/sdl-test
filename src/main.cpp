@@ -257,6 +257,19 @@ int main(int argc, char *args[]) {
     auto dot_pos = dot->get_position();
     camera_pos.x = dot_pos.x + dot->DOT_WIDTH / 2.0 - SCREEN_WIDTH / 2.0;
     camera_pos.y = dot_pos.y + dot->DOT_HEIGHT / 2.0 - SCREEN_HEIGHT / 2.0;
+    // keep camera in bound
+    if (camera_pos.x < 0) {
+      camera_pos.x = 0;
+    }
+    if (camera_pos.y < 0) {
+      camera_pos.y = 0;
+    }
+    if (camera_pos.x > LEVEL_WIDTH - SCREEN_WIDTH) {
+      camera_pos.x = LEVEL_WIDTH - SCREEN_WIDTH;
+    }
+    if (camera_pos.y > LEVEL_HEIGHT - SCREEN_HEIGHT) {
+      camera_pos.y = LEVEL_HEIGHT - SCREEN_HEIGHT;
+    }
     background->render(camera_pos);
     dot->update(dt);
     dot->render(camera_pos);
@@ -416,7 +429,7 @@ SDL_Joystick *load_joystick(SDL_JoystickID *joysticks, SDL_Haptic **haptic) {
 }
 
 bool load_media() {
-  if (!background_texture->load_from_file("assets/background.png")) {
+  if (!background_texture->load_from_file("assets/bg.png")) {
     return false;
   }
   if (!texture->load_from_file("assets/foo.png")) {
