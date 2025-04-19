@@ -25,13 +25,12 @@ public:
   void render(float x, float y, const SDL_FRect *clip = nullptr,
               double angle = .0, const SDL_FPoint *center = nullptr,
               SDL_FlipMode flip = SDL_FLIP_NONE);
-  float get_width();
-  float get_height();
+  float width();
+  float height();
 
 private:
-  SDL_Texture *texture;
-  SDL_Renderer *renderer;
-
-  float width;
-  float height;
+  SDL_Texture *m_texture;
+  SDL_Renderer *m_renderer;
+  float m_width;
+  float m_height;
 };

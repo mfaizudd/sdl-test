@@ -15,7 +15,7 @@ includes = include_directories([
   'src',
 ])
 sources = [
-  'src/main.cpp',
+  'src/main_scroll.cpp',
   'src/Texture.cpp',
   'src/Button.cpp',
   'src/Timer.cpp',

@@ -285,8 +285,8 @@ int main(int argc, char *args[]) {
         SDL_Log("Unable to render time texture");
       }
     }
-    font_texture->render((SCREEN_WIDTH - font_texture->get_width()) / 2,
-                         (SCREEN_HEIGHT - font_texture->get_height()) / 2);
+    font_texture->render((SCREEN_WIDTH - font_texture->width()) / 2,
+                         (SCREEN_HEIGHT - font_texture->height()) / 2);
 #endif // SDL_TTF_MAJOR_VERSION
     SDL_RenderPresent(g_renderer);
     frame_index = (frame_index + 1) % (TOTAL_FRAMES * 4);
