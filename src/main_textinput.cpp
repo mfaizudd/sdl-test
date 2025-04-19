@@ -2,6 +2,8 @@
 #include "Texture.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_audio.h>
+#include <SDL3/SDL_clipboard.h>
+#include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_haptic.h>
@@ -20,6 +22,7 @@
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_timer.h>
+#include <SDL3/SDL_video.h>
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #include <SDL3_ttf/SDL_ttf.h>
@@ -56,6 +59,12 @@ int main(int argc, char *args[]) {
 
   SDL_Event e;
   bool quit = false;
+  std::string input_text = "Some text";
+  if (!SDL_StartTextInput(g_window)) {
+    SDL_Log("Failed to start text input: %s\n", SDL_GetError());
+    close();
+    return 0;
+  }
   // float dt = .0f;
   // float last_tick = SDL_GetTicks() / 1000.0f;
   while (!quit) {
@@ -65,14 +74,50 @@ int main(int argc, char *args[]) {
       if (e.type == SDL_EVENT_QUIT) {
         quit = true;
       }
+      if (e.type == SDL_EVENT_KEY_DOWN) {
+        if (e.key.key == SDLK_BACKSPACE) {
+          if (input_text != "") {
+            input_text.pop_back();
+          }
+        } else if (e.key.key == SDLK_C && SDL_GetModState() & SDL_KMOD_CTRL) {
+          SDL_SetClipboardText(input_text.c_str());
+        } else if (e.key.key == SDLK_V && SDL_GetModState() & SDL_KMOD_CTRL) {
+          auto temp_text = SDL_GetClipboardText();
+          input_text = temp_text;
+          SDL_free(temp_text);
+        }
+      } else if (e.type == SDL_EVENT_TEXT_INPUT) {
+        if (!(SDL_GetModState() & SDL_KMOD_CTRL &&
+              (e.text.text[0] != 'c' || e.text.text[0] != 'C' ||
+               e.text.text[0] != 'v' || e.text.text[0] != 'V'))) {
+          input_text += e.text.text;
+        }
+      }
     }
     SDL_SetRenderDrawColor(g_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(g_renderer);
 
     // do something
     texture->render(0, 0);
+    font_texture->load_from_rendered_text("Enter some text",
+                                          SDL_Color{0, 0, 0, 0}, g_font);
+    font_texture->render(SCREEN_WIDTH / 2.0 - font_texture->width() / 2.0,
+                         SCREEN_HEIGHT / 2.0 - font_texture->height() / 2.0);
+    if (input_text != "") {
+      font_texture->load_from_rendered_text(input_text.c_str(),
+                                            SDL_Color{0, 0, 0, 0}, g_font);
+    } else {
+      font_texture->load_from_rendered_text(" ", SDL_Color{0, 0, 0, 0}, g_font);
+    }
+    font_texture->render(SCREEN_WIDTH / 2.0 - font_texture->width() / 2.0,
+                         SCREEN_HEIGHT / 2.0 - font_texture->height() / 2.0 +
+                             font_texture->height());
 
     SDL_RenderPresent(g_renderer);
+  }
+
+  if (!SDL_StopTextInput(g_window)) {
+    SDL_Log("Failed to stop text input: %s\n", SDL_GetError());
   }
 
   close();
