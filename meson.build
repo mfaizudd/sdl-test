@@ -15,7 +15,7 @@ includes = include_directories([
   'src',
 ])
 sources = [
-  'src/main_audiorec.cpp',
+  'src/main_window.cpp',
   'src/Texture.cpp',
   'src/Button.cpp',
   'src/Timer.cpp',
@@ -23,5 +23,6 @@ sources = [
   'src/BoxCollider.cpp',
   'src/Transform.cpp',
   'src/CircleCollider.cpp',
+  'src/Window.cpp',
 ]
 executable('sdl-test', sources, dependencies: deps, include_directories: includes)

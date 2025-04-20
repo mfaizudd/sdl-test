@@ -1,0 +1,116 @@
+#include "Window.h"
+#include "Globals.h"
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_keycode.h>
+#include <SDL3/SDL_render.h>
+#include <SDL3/SDL_video.h>
+#include <cstdio>
+#include <sstream>
+
+Window::Window() {
+  m_window = nullptr;
+
+  m_width = 0;
+  m_height = 0;
+
+  m_mouse_focus = false;
+  m_keyboard_focus = false;
+  m_fullscreen = false;
+  m_minimized = false;
+}
+
+Window::~Window() { free(); }
+
+bool Window::init() {
+  auto success =
+      SDL_CreateWindowAndRenderer("Window title", SCREEN_WIDTH, SCREEN_HEIGHT,
+                                  SDL_WINDOW_RESIZABLE, &m_window, &m_renderer);
+  if (!success) {
+    SDL_Log("Could create window. Error: %s\n", SDL_GetError());
+    return false;
+  }
+
+  m_width = SCREEN_WIDTH;
+  m_height = SCREEN_HEIGHT;
+  SDL_SetRenderVSync(m_renderer, 1);
+  SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+  SDL_RenderClear(m_renderer);
+  return m_window != nullptr;
+}
+
+void Window::handle_event(const SDL_Event *e) {
+  auto update_title = false;
+  switch (e->type) {
+  case SDL_EVENT_WINDOW_RESIZED:
+    m_width = e->window.data1;
+    m_height = e->window.data2;
+    SDL_RenderPresent(m_renderer);
+    printf("window resized to %d %d\n", m_width, m_height);
+    break;
+  case SDL_EVENT_WINDOW_EXPOSED:
+    SDL_RenderPresent(m_renderer);
+    printf("window exposed\n");
+    break;
+  case SDL_EVENT_WINDOW_MOUSE_ENTER:
+    m_mouse_focus = true;
+    update_title = true;
+    break;
+  case SDL_EVENT_WINDOW_MOUSE_LEAVE:
+    m_mouse_focus = false;
+    update_title = true;
+    break;
+  case SDL_EVENT_WINDOW_FOCUS_GAINED:
+    m_keyboard_focus = true;
+    update_title = true;
+    break;
+  case SDL_EVENT_WINDOW_FOCUS_LOST:
+    m_keyboard_focus = false;
+    update_title = true;
+    break;
+  case SDL_EVENT_WINDOW_MINIMIZED:
+    m_minimized = true;
+    update_title = true;
+    break;
+  case SDL_EVENT_WINDOW_MAXIMIZED:
+    m_minimized = false;
+    update_title = true;
+    break;
+  case SDL_EVENT_WINDOW_RESTORED:
+    m_minimized = false;
+    update_title = true;
+    break;
+  case SDL_EVENT_KEY_DOWN:
+    if (e->key.key == SDLK_RETURN) {
+      m_fullscreen = !m_fullscreen;
+      SDL_SetWindowFullscreen(m_window, m_fullscreen);
+      m_minimized = !m_fullscreen;
+      printf("set window fullscreen: %b\n", m_fullscreen);
+    }
+    break;
+  }
+
+  if (update_title) {
+    std::stringstream title;
+    title << "SDL Window - Mouse focus: " << (m_mouse_focus ? "yes" : "no")
+          << " Focused: " << (m_keyboard_focus ? "yes" : "no");
+    SDL_SetWindowTitle(m_window, title.str().c_str());
+    printf("%s\n", title.str().c_str());
+  }
+}
+
+SDL_Renderer *Window::renderer() const { return m_renderer; }
+
+int Window::width() const { return m_width; }
+int Window::height() const { return m_height; }
+
+bool Window::has_mouse_focus() const { return m_mouse_focus; }
+bool Window::has_keyboard_focus() const { return m_keyboard_focus; }
+bool Window::minimized() const { return m_minimized; }
+
+void Window::free() {
+  SDL_DestroyRenderer(m_renderer);
+  m_renderer = nullptr;
+
+  SDL_DestroyWindow(m_window);
+  m_window = nullptr;
+}
