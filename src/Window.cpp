@@ -40,11 +40,14 @@ bool Window::init() {
   SDL_SetRenderVSync(m_renderer, 1);
   SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
   SDL_RenderClear(m_renderer);
-  return m_window != nullptr && m_renderer != nullptr;
+  return true;
 }
 
 void Window::handle_event(const SDL_Event *e) {
   auto update_title = false;
+  if (e->type < SDL_EVENT_WINDOW_FIRST || e->type > SDL_EVENT_WINDOW_LAST) {
+    return;
+  }
   if (e->window.windowID != m_window_id) {
     return;
   }
