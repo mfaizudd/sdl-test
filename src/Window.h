@@ -7,16 +7,19 @@ public:
   ~Window();
   bool init();
   void handle_event(const SDL_Event *e);
-  SDL_Renderer *renderer() const;
+  void focus();
+  void render();
   int width() const;
   int height() const;
   bool has_mouse_focus() const;
   bool has_keyboard_focus() const;
   bool minimized() const;
+  bool shown() const;
 
 private:
   SDL_Window *m_window;
   SDL_Renderer *m_renderer;
+  SDL_WindowID m_window_id;
 
   int m_width;
   int m_height;
@@ -25,6 +28,7 @@ private:
   bool m_keyboard_focus;
   bool m_fullscreen;
   bool m_minimized;
+  bool m_shown;
 
   void free();
 };

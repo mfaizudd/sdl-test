@@ -22,6 +22,7 @@ const int JOYSTICK_DEADZONE = 8000;
 const int MAX_RECORDING_DEVICES = 10;
 const int MAX_RECORDING_SECONDS = 5;
 const int RECORDING_BUFFER_SECONDS = MAX_RECORDING_SECONDS + 1;
+const int TOTAL_WINDOWS = 3;
 
 enum RecordingState {
   SelectingDevice,

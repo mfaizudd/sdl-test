@@ -1,4 +1,4 @@
-#include "Texture.h"
+#include "Globals.h"
 #include "Window.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_audio.h>
@@ -31,10 +31,7 @@ bool init();
 void load_inputs();
 bool load_media();
 void close();
-Window *g_window;
-TTF_Font *g_font = nullptr;
-Texture *texture = nullptr;
-Texture *font_texture = nullptr;
+Window *g_windows[TOTAL_WINDOWS] = {};
 
 int main(int argc, char *args[]) {
   if (!init()) {
@@ -57,12 +54,41 @@ int main(int argc, char *args[]) {
       if (e.type == SDL_EVENT_QUIT) {
         quit = true;
       }
-      g_window->handle_event(&e);
+
+      for (int i = 0; i < TOTAL_WINDOWS; i++) {
+        g_windows[i]->handle_event(&e);
+      }
+
+      if (e.type == SDL_EVENT_KEY_DOWN) {
+        switch (e.key.key) {
+        case SDLK_1:
+          g_windows[0]->focus();
+          break;
+        case SDLK_2:
+          g_windows[1]->focus();
+          break;
+        case SDLK_3:
+          g_windows[2]->focus();
+          break;
+        }
+      }
     }
 
-    // do something
-    texture->render(0, 0);
-    g_window->render();
+    for (int i = 0; i < TOTAL_WINDOWS; i++) {
+      g_windows[i]->render();
+    }
+
+    bool all_window_closed = true;
+    for (const auto &window : g_windows) {
+      if (window->shown()) {
+        all_window_closed = false;
+        break;
+      }
+    }
+
+    if (all_window_closed) {
+      quit = true;
+    }
   }
 
   close();
@@ -80,9 +106,13 @@ bool init() {
   }
 
   // Create window and renderer
-  g_window = new Window();
-  if (!g_window->init()) {
-    return false;
+  for (int i = 0; i < TOTAL_WINDOWS; i++) {
+    g_windows[i] = new Window();
+    if (!g_windows[i]->init()) {
+      SDL_Log("Could not create window and renderer. Error: %s\n",
+              SDL_GetError());
+      return false;
+    }
   }
 
   if (!TTF_Init()) {
@@ -97,36 +127,19 @@ bool init() {
     SDL_Log("Could not initialize SDL Mixer. SDL Error: %s\n", SDL_GetError());
     return false;
   }
-  texture = new Texture(g_window->renderer());
-  font_texture = new Texture(g_window->renderer());
   return true;
 }
 
 // asset loading
-bool load_media() {
-  if (!texture->load_from_file("assets/background.png")) {
-    return false;
-  }
-  g_font = TTF_OpenFont("assets/lazy.ttf", 28);
-  if (!font_texture->load_from_rendered_text(
-          "The quick brown fox jumps over the lazy dog.", SDL_Color{0, 0, 0},
-          g_font)) {
-    return false;
-  }
-  return true;
-}
+bool load_media() { return true; }
 
 // cleanup
 void close() {
-  delete texture;
-  texture = nullptr;
+  for (int i = 0; i < TOTAL_WINDOWS; i++) {
+    delete g_windows[i];
+    g_windows[i] = nullptr;
+  }
 
-  delete font_texture;
-  font_texture = nullptr;
-  TTF_CloseFont(g_font);
-  g_font = nullptr;
-
-  delete g_window;
   TTF_Quit();
   Mix_Quit();
   SDL_Quit();
