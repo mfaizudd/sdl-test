@@ -87,6 +87,11 @@ int main(int argc, char *args[]) {
   SDL_Color normal{0, 0, 0, 0xFF};
   bool quit = false;
   int current_index = 0;
+  for (int i = 0; i < TOTAL_DATA; i++) {
+    g_data_textures[i]->load_from_rendered_text(
+        std::to_string(g_data[i]), i == current_index ? highlight : normal,
+        g_font);
+  }
   while (!quit) {
     while (SDL_PollEvent(&e) != 0) {
       if (e.type == SDL_EVENT_QUIT) {
@@ -94,22 +99,34 @@ int main(int argc, char *args[]) {
       } else if (e.type == SDL_EVENT_KEY_DOWN) {
         switch (e.key.key) {
         case SDLK_UP:
+          g_data_textures[current_index]->load_from_rendered_text(
+              std::to_string(g_data[current_index]), normal, g_font);
           current_index--;
           if (current_index < 0) {
             current_index = TOTAL_DATA - 1;
           }
+          g_data_textures[current_index]->load_from_rendered_text(
+              std::to_string(g_data[current_index]), highlight, g_font);
           break;
         case SDLK_DOWN:
+          g_data_textures[current_index]->load_from_rendered_text(
+              std::to_string(g_data[current_index]), normal, g_font);
           current_index++;
           if (current_index == TOTAL_DATA) {
             current_index = 0;
           }
+          g_data_textures[current_index]->load_from_rendered_text(
+              std::to_string(g_data[current_index]), highlight, g_font);
           break;
         case SDLK_RIGHT:
           g_data[current_index]++;
+          g_data_textures[current_index]->load_from_rendered_text(
+              std::to_string(g_data[current_index]), highlight, g_font);
           break;
         case SDLK_LEFT:
           g_data[current_index]--;
+          g_data_textures[current_index]->load_from_rendered_text(
+              std::to_string(g_data[current_index]), highlight, g_font);
           break;
         }
       }
@@ -120,9 +137,6 @@ int main(int argc, char *args[]) {
     // do something
     texture->render(0, 0);
     for (int i = 0; i < TOTAL_DATA; i++) {
-      g_data_textures[i]->load_from_rendered_text(
-          std::to_string(g_data[i]), i == current_index ? highlight : normal,
-          g_font);
       g_data_textures[i]->render(SCREEN_WIDTH / 2.0 -
                                      g_data_textures[i]->width() / 2.0,
                                  i * g_data_textures[i]->height());
