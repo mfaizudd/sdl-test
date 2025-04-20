@@ -17,6 +17,7 @@ const int SCREEN_HEIGHT = 480;
 const float SCREEN_FPS = 60;
 const float TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 const int TOTAL_FRAMES = 4;
+const int TOTAL_DATA = 10;
 const int JOYSTICK_DEADZONE = 8000;
 
 static std::shared_ptr<BoxCollider> g_wall =
