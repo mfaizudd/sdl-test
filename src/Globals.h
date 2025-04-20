@@ -19,6 +19,18 @@ const float TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 const int TOTAL_FRAMES = 4;
 const int TOTAL_DATA = 10;
 const int JOYSTICK_DEADZONE = 8000;
+const int MAX_RECORDING_DEVICES = 10;
+const int MAX_RECORDING_SECONDS = 5;
+const int RECORDING_BUFFER_SECONDS = MAX_RECORDING_SECONDS + 1;
+
+enum RecordingState {
+  SelectingDevice,
+  Stopped,
+  Recording,
+  Recorded,
+  Playback,
+  Error
+};
 
 static std::shared_ptr<BoxCollider> g_wall =
     std::make_shared<BoxCollider>(300, 120, 128, 64);

@@ -33,13 +33,9 @@ bool load_media();
 void close();
 SDL_Window *g_window = nullptr;
 SDL_Renderer *g_renderer = nullptr;
-#ifdef SDL_TTF_MAJOR_VERSION
 TTF_Font *g_font = nullptr;
-#endif // SDL_TTF_MAJOR_VERSION
 Texture *texture = nullptr;
-#ifdef SDL_TTF_MAJOR_VERSION
 Texture *font_texture = nullptr;
-#endif // SDL_TTF_MAJOR_VERSION
 
 int main(int argc, char *args[]) {
   if (!init()) {
@@ -55,12 +51,9 @@ int main(int argc, char *args[]) {
   }
 
   SDL_Event e;
+  // main loop
   bool quit = false;
-  // float dt = .0f;
-  // float last_tick = SDL_GetTicks() / 1000.0f;
   while (!quit) {
-    // dt = (SDL_GetTicks() / 1000.0f) - last_tick;
-    // last_tick = SDL_GetTicks() / 1000.0f;
     while (SDL_PollEvent(&e) != 0) {
       if (e.type == SDL_EVENT_QUIT) {
         quit = true;
@@ -80,6 +73,7 @@ int main(int argc, char *args[]) {
   return 0;
 }
 
+// initialize
 bool init() {
   // Initialize SDL
   if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC |
@@ -99,12 +93,10 @@ bool init() {
 
   SDL_SetRenderVSync(g_renderer, 1);
   SDL_SetRenderDrawColor(g_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-#ifdef SDL_TTF_MAJOR_VERSION
   if (!TTF_Init()) {
     SDL_Log("Could not initialize ttf. Error: %s\n", SDL_GetError());
     return false;
   }
-#endif // SDL_TTF_MAJOR_VERSION
   SDL_AudioSpec audio_spec{};
   audio_spec.format = MIX_DEFAULT_FORMAT;
   audio_spec.channels = 2;
@@ -114,44 +106,38 @@ bool init() {
     return false;
   }
   texture = new Texture(g_renderer);
-#ifdef SDL_TTF_MAJOR_VERSION
   font_texture = new Texture(g_renderer);
-#endif // SDL_TTF_MAJOR_VERSION
   return true;
 }
 
+// asset loading
 bool load_media() {
   if (!texture->load_from_file("assets/background.png")) {
     return false;
   }
-#ifdef SDL_TTF_MAJOR_VERSION
   g_font = TTF_OpenFont("assets/lazy.ttf", 28);
   if (!font_texture->load_from_rendered_text(
           "The quick brown fox jumps over the lazy dog.", SDL_Color{0, 0, 0},
           g_font)) {
     return false;
   }
-#endif // SDL_TTF_MAJOR_VERSION
   return true;
 }
 
+// cleanup
 void close() {
   delete texture;
   texture = nullptr;
 
-#ifdef SDL_TTF_MAJOR_VERSION
   delete font_texture;
   font_texture = nullptr;
   TTF_CloseFont(g_font);
   g_font = nullptr;
-#endif // SDL_TTF_MAJOR_VERSION
   SDL_DestroyRenderer(g_renderer);
   g_renderer = nullptr;
   SDL_DestroyWindow(g_window);
   g_window = nullptr;
-#ifdef SDL_TTF_MAJOR_VERSION
   TTF_Quit();
-#endif // SDL_TTF_MAJOR_VERSION
   Mix_Quit();
   SDL_Quit();
 }
