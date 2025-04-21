@@ -20,6 +20,7 @@ private:
   SDL_Window *m_window;
   SDL_Renderer *m_renderer;
   SDL_WindowID m_window_id;
+  SDL_DisplayID m_display_id;
 
   int m_width;
   int m_height;

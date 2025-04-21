@@ -1,11 +1,17 @@
 #include "Window.h"
 #include "Globals.h"
+#include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_keycode.h>
+#include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
+#include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_video.h>
 #include <cstdio>
 #include <sstream>
+
+int g_total_displays = 0;
+SDL_Rect *display_bounds = nullptr;
 
 Window::Window() {
   m_window = nullptr;
@@ -33,7 +39,18 @@ bool Window::init() {
     return false;
   }
 
+  auto display_ids = SDL_GetDisplays(&g_total_displays);
+  display_bounds = new SDL_Rect[g_total_displays];
+  for (int i = 0; i < g_total_displays; i++) {
+    printf("Display %d connected\n", display_ids[i]);
+    if (!SDL_GetDisplayBounds(display_ids[i], &display_bounds[i])) {
+      printf("Could not get dipslay bound for display %d: %s\n", display_ids[i],
+             SDL_GetError());
+    }
+  }
+  SDL_free(display_ids);
   m_window_id = SDL_GetWindowID(m_window);
+  m_display_id = SDL_GetDisplayForWindow(m_window);
   m_shown = true;
   m_width = SCREEN_WIDTH;
   m_height = SCREEN_HEIGHT;
@@ -44,7 +61,26 @@ bool Window::init() {
 }
 
 void Window::handle_event(const SDL_Event *e) {
+  bool switch_display = false;
+  if (e->type == SDL_EVENT_KEY_DOWN) {
+    if (e->key.key == SDLK_UP) {
+      m_display_id++;
+      switch_display = true;
+    } else if (e->key.key == SDLK_DOWN) {
+      m_display_id--;
+      switch_display = true;
+    }
+  }
   auto update_title = false;
+  if (switch_display) {
+    SDL_SetWindowPosition(
+        m_window,
+        display_bounds[m_display_id - 1].x +
+            (display_bounds[m_display_id - 1].w - m_width) / 2.0,
+        display_bounds[m_display_id - 1].y +
+            (display_bounds[m_display_id - 1].h - m_height) / 2.0);
+    update_title = true;
+  }
   if (e->type < SDL_EVENT_WINDOW_FIRST || e->type > SDL_EVENT_WINDOW_LAST) {
     return;
   }
@@ -52,6 +88,10 @@ void Window::handle_event(const SDL_Event *e) {
     return;
   }
   switch (e->type) {
+  case SDL_EVENT_WINDOW_MOVED:
+    m_display_id = SDL_GetDisplayForWindow(m_window);
+    update_title = true;
+    break;
   case SDL_EVENT_WINDOW_RESIZED:
     m_width = e->window.data1;
     m_height = e->window.data2;
