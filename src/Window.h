@@ -1,6 +1,9 @@
+#pragma once
+#include "GameObject.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_video.h>
+#include <memory>
 class Window {
 public:
   Window();
@@ -9,6 +12,7 @@ public:
   void handle_event(const SDL_Event *e);
   void focus();
   void render();
+  void update(float dt);
   int width() const;
   int height() const;
   bool has_mouse_focus() const;
@@ -21,6 +25,8 @@ private:
   SDL_Renderer *m_renderer;
   SDL_WindowID m_window_id;
   SDL_DisplayID m_display_id;
+  std::shared_ptr<GameObject> m_dot;
+  std::shared_ptr<GameObject> m_bg;
 
   int m_width;
   int m_height;

@@ -34,5 +34,5 @@ glm::vec2 BoxCollider::get_position() const {
     return this->position;
   }
   auto parent = this->parent.value();
-  return parent->get_position() + this->position;
+  return parent->position() + this->position;
 }

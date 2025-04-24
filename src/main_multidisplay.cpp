@@ -30,8 +30,8 @@ bool init();
 void load_inputs();
 bool load_media();
 void close();
-Window *g_window;
-TTF_Font *g_font = nullptr;
+Window *window;
+TTF_Font *font = nullptr;
 
 int main(int argc, char *args[]) {
   if (!init()) {
@@ -54,11 +54,11 @@ int main(int argc, char *args[]) {
       if (e.type == SDL_EVENT_QUIT) {
         quit = true;
       }
-      g_window->handle_event(&e);
+      window->handle_event(&e);
     }
 
     // do something
-    g_window->render();
+    window->render();
   }
 
   close();
@@ -76,8 +76,8 @@ bool init() {
   }
 
   // Create window and renderer
-  g_window = new Window();
-  if (!g_window->init()) {
+  window = new Window();
+  if (!window->init()) {
     return false;
   }
 
@@ -98,16 +98,16 @@ bool init() {
 
 // asset loading
 bool load_media() {
-  g_font = TTF_OpenFont("assets/lazy.ttf", 28);
+  font = TTF_OpenFont("assets/lazy.ttf", 28);
   return true;
 }
 
 // cleanup
 void close() {
-  delete g_window;
+  delete window;
 
-  TTF_CloseFont(g_font);
-  g_font = nullptr;
+  TTF_CloseFont(font);
+  font = nullptr;
 
   TTF_Quit();
   Mix_Quit();

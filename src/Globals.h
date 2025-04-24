@@ -2,8 +2,10 @@
 
 #include "BoxCollider.h"
 #include "CircleCollider.h"
+#include "Window.h"
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_render.h>
 #include <cmath>
 #include <glm/ext/vector_float2.hpp>
 #include <glm/geometric.hpp>
@@ -104,3 +106,13 @@ inline bool check_collision(std::shared_ptr<CircleCollider> a,
   //         a_pos.y, c.x, c.y, glm::distance(a_pos, c), a->get_radius());
   return glm::distance(a_pos, c) < a->get_radius();
 }
+
+Texture *g_texture_red();
+Texture *g_texture_green();
+Texture *g_texture_blue();
+Texture *g_texture_shimmer();
+
+bool g_init();
+bool g_load_media(SDL_Renderer *renderer);
+void g_close();
+

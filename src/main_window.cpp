@@ -31,8 +31,8 @@ bool init();
 void load_inputs();
 bool load_media();
 void close();
-Window *g_window;
-TTF_Font *g_font = nullptr;
+Window *window;
+TTF_Font *font = nullptr;
 Texture *texture = nullptr;
 Texture *font_texture = nullptr;
 
@@ -57,12 +57,12 @@ int main(int argc, char *args[]) {
       if (e.type == SDL_EVENT_QUIT) {
         quit = true;
       }
-      g_window->handle_event(&e);
+      window->handle_event(&e);
     }
 
     // do something
     texture->render(0, 0);
-    g_window->render();
+    window->render();
   }
 
   close();
@@ -80,8 +80,8 @@ bool init() {
   }
 
   // Create window and renderer
-  g_window = new Window();
-  if (!g_window->init()) {
+  window = new Window();
+  if (!window->init()) {
     return false;
   }
 
@@ -107,10 +107,10 @@ bool load_media() {
   if (!texture->load_from_file("assets/background.png")) {
     return false;
   }
-  g_font = TTF_OpenFont("assets/lazy.ttf", 28);
+  font = TTF_OpenFont("assets/lazy.ttf", 28);
   if (!font_texture->load_from_rendered_text(
           "The quick brown fox jumps over the lazy dog.", SDL_Color{0, 0, 0},
-          g_font)) {
+          font)) {
     return false;
   }
   return true;
@@ -123,10 +123,10 @@ void close() {
 
   delete font_texture;
   font_texture = nullptr;
-  TTF_CloseFont(g_font);
-  g_font = nullptr;
+  TTF_CloseFont(font);
+  font = nullptr;
 
-  delete g_window;
+  delete window;
   TTF_Quit();
   Mix_Quit();
   SDL_Quit();

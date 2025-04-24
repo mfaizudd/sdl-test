@@ -1,17 +1,19 @@
 #include "Window.h"
+#include "GameObject.h"
 #include "Globals.h"
+#include "Texture.h"
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_keycode.h>
+#include <SDL3/SDL_log.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_video.h>
 #include <cstdio>
+#include <glm/ext/vector_float2.hpp>
+#include <memory>
 #include <sstream>
-
-int g_total_displays = 0;
-SDL_Rect *display_bounds = nullptr;
 
 Window::Window() {
   m_window = nullptr;
@@ -39,21 +41,32 @@ bool Window::init() {
     return false;
   }
 
-  auto display_ids = SDL_GetDisplays(&g_total_displays);
-  display_bounds = new SDL_Rect[g_total_displays];
-  for (int i = 0; i < g_total_displays; i++) {
-    printf("Display %d connected\n", display_ids[i]);
-    if (!SDL_GetDisplayBounds(display_ids[i], &display_bounds[i])) {
-      printf("Could not get dipslay bound for display %d: %s\n", display_ids[i],
-             SDL_GetError());
-    }
-  }
-  SDL_free(display_ids);
   m_window_id = SDL_GetWindowID(m_window);
   m_display_id = SDL_GetDisplayForWindow(m_window);
   m_shown = true;
   m_width = SCREEN_WIDTH;
   m_height = SCREEN_HEIGHT;
+
+  if (!g_load_media(m_renderer)) {
+    SDL_Log("Failed to load media: %s\n", SDL_GetError());
+    return false;
+  }
+  auto bg_texture = new Texture(m_renderer);
+  if (!bg_texture->load_from_file("assets/background.png")) {
+    this->free();
+    delete bg_texture;
+    return false;
+  }
+
+  m_bg = std::make_shared<GameObject>(bg_texture);
+  auto texture = new Texture(m_renderer);
+  if (!texture->load_from_file("assets/dot.png")) {
+    this->free();
+    delete texture;
+    return false;
+  }
+
+  m_dot = std::make_shared<GameObject>(texture);
   SDL_SetRenderVSync(m_renderer, 1);
   SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
   SDL_RenderClear(m_renderer);
@@ -61,26 +74,27 @@ bool Window::init() {
 }
 
 void Window::handle_event(const SDL_Event *e) {
-  bool switch_display = false;
-  if (e->type == SDL_EVENT_KEY_DOWN) {
-    if (e->key.key == SDLK_UP) {
-      m_display_id++;
-      switch_display = true;
-    } else if (e->key.key == SDLK_DOWN) {
-      m_display_id--;
-      switch_display = true;
-    }
-  }
+  // bool switch_display = false;
+  // if (e->type == SDL_EVENT_KEY_DOWN) {
+  //   if (e->key.key == SDLK_UP) {
+  //     m_display_id++;
+  //     switch_display = true;
+  //   } else if (e->key.key == SDLK_DOWN) {
+  //     m_display_id--;
+  //     switch_display = true;
+  //   }
+  // }
+  m_dot->handle_event(e);
   auto update_title = false;
-  if (switch_display) {
-    SDL_SetWindowPosition(
-        m_window,
-        display_bounds[m_display_id - 1].x +
-            (display_bounds[m_display_id - 1].w - m_width) / 2.0,
-        display_bounds[m_display_id - 1].y +
-            (display_bounds[m_display_id - 1].h - m_height) / 2.0);
-    update_title = true;
-  }
+  // if (switch_display) {
+  //   SDL_SetWindowPosition(
+  //       m_window,
+  //       display_bounds[m_display_id - 1].x +
+  //           (display_bounds[m_display_id - 1].w - m_width) / 2.0,
+  //       display_bounds[m_display_id - 1].y +
+  //           (display_bounds[m_display_id - 1].h - m_height) / 2.0);
+  //   update_title = true;
+  // }
   if (e->type < SDL_EVENT_WINDOW_FIRST || e->type > SDL_EVENT_WINDOW_LAST) {
     return;
   }
@@ -170,9 +184,18 @@ void Window::render() {
     SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(m_renderer);
 
+    auto cam_pos = m_dot->position();
+    cam_pos.x = cam_pos.x + m_dot->width() / 2.0 - SCREEN_WIDTH / 2.0;
+    cam_pos.y = cam_pos.y + m_dot->height() / 2.0 - SCREEN_HEIGHT / 2.0;
+    m_bg->render(cam_pos);
+    m_dot->render(cam_pos);
     // Update screen
     SDL_RenderPresent(m_renderer);
   }
+}
+
+void Window::update(float dt) {
+  m_dot->update(dt);
 }
 
 int Window::width() const { return m_width; }

@@ -6,11 +6,11 @@ class Transform {
 public:
   Transform();
   Transform(std::shared_ptr<Transform> parent);
-  void set_position(float x, float y);
-  glm::vec2 get_position() const;
-  std::optional<std::shared_ptr<Transform>> get_parent() const;
+  void position(float x, float y);
+  glm::vec2 position() const;
+  std::optional<std::shared_ptr<Transform>> parent() const;
 
 private:
-  std::optional<std::shared_ptr<Transform>> parent;
-  glm::vec2 position{0, 0};
+  std::optional<std::shared_ptr<Transform>> m_parent;
+  glm::vec2 m_position{0, 0};
 };
