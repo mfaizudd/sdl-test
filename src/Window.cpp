@@ -1,7 +1,6 @@
 #include "Window.h"
-#include "GameObject.h"
+#include "Dot.h"
 #include "Globals.h"
-#include "Texture.h"
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_keycode.h>
@@ -51,22 +50,16 @@ bool Window::init() {
     SDL_Log("Failed to load media: %s\n", SDL_GetError());
     return false;
   }
-  auto bg_texture = new Texture(m_renderer);
-  if (!bg_texture->load_from_file("assets/background.png")) {
+  m_bg = std::make_shared<Bg>(m_renderer);
+  if (!m_bg->init()) {
     this->free();
-    delete bg_texture;
     return false;
   }
-
-  m_bg = std::make_shared<GameObject>(bg_texture);
-  auto texture = new Texture(m_renderer);
-  if (!texture->load_from_file("assets/dot.png")) {
+  m_dot = std::make_shared<Dot>(m_renderer);
+  if (!m_dot->init()) {
     this->free();
-    delete texture;
     return false;
   }
-
-  m_dot = std::make_shared<GameObject>(texture);
   SDL_SetRenderVSync(m_renderer, 1);
   SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
   SDL_RenderClear(m_renderer);
@@ -194,9 +187,7 @@ void Window::render() {
   }
 }
 
-void Window::update(float dt) {
-  m_dot->update(dt);
-}
+void Window::update(float dt) { m_dot->update(dt); }
 
 int Window::width() const { return m_width; }
 int Window::height() const { return m_height; }

@@ -26,5 +26,7 @@ sources = [
   'src/Window.cpp',
   'src/Particle.cpp',
   'src/Globals.cpp',
+  'src/Dot.cpp',
+  'src/Bg.cpp',
 ]
 executable('sdl-test', sources, dependencies: deps, include_directories: includes)

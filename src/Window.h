@@ -1,9 +1,12 @@
 #pragma once
-#include "GameObject.h"
+
+#include "Bg.h"
+#include "Dot.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_video.h>
 #include <memory>
+
 class Window {
 public:
   Window();
@@ -25,8 +28,8 @@ private:
   SDL_Renderer *m_renderer;
   SDL_WindowID m_window_id;
   SDL_DisplayID m_display_id;
-  std::shared_ptr<GameObject> m_dot;
-  std::shared_ptr<GameObject> m_bg;
+  std::shared_ptr<Bg> m_bg = nullptr;
+  std::shared_ptr<Dot> m_dot = nullptr;
 
   int m_width;
   int m_height;

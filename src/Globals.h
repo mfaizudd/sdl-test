@@ -2,7 +2,7 @@
 
 #include "BoxCollider.h"
 #include "CircleCollider.h"
-#include "Window.h"
+#include "Texture.h"
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
@@ -16,6 +16,7 @@ const int LEVEL_HEIGHT = 960;
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
+
 const float SCREEN_FPS = 60;
 const float TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 const int TOTAL_FRAMES = 4;
@@ -25,6 +26,28 @@ const int MAX_RECORDING_DEVICES = 10;
 const int MAX_RECORDING_SECONDS = 5;
 const int RECORDING_BUFFER_SECONDS = MAX_RECORDING_SECONDS + 1;
 const int TOTAL_WINDOWS = 3;
+
+// Tile constants
+const int TILE_WIDTH = 80;
+const int TILE_HEIGHT = 80;
+const int TOTAL_TILES = 192;
+const int TOTAL_TILE_SPRITES = 12;
+
+// Tile sprites
+enum TileType {
+  Red = 0,
+  Green,
+  Blue,
+  Center,
+  Top,
+  TopRight,
+  Right,
+  BottomRight,
+  Bottom,
+  BottomLeft,
+  Left,
+  TopLeft
+};
 
 enum RecordingState {
   SelectingDevice,
