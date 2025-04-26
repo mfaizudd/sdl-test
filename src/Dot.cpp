@@ -1,14 +1,15 @@
 #include "Dot.h"
-#include "GameObject.h"
 #include "Globals.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_render.h>
 #include <glm/ext/vector_float2.hpp>
+#include <memory>
 
-Dot::Dot(SDL_Renderer *renderer) : GameObject(renderer) {
+Dot::Dot(SDL_Renderer *renderer) {
+  m_renderer = renderer;
   m_texture = std::make_unique<Texture>(m_renderer);
   m_collider = std::make_shared<CircleCollider>(m_transform, 10);
-  m_collider->set_position(m_width / 2.0f, m_height / 2.0f);
+  m_collider->position(m_width / 2.0f, m_height / 2.0f);
   auto pos = m_transform->position();
   for (int i = 0; i < TOTAL_PARTICLES; i++) {
     m_particles[i] = std::make_shared<Particle>(pos.x, pos.y);
@@ -73,7 +74,8 @@ void Dot::update(float dt) {
   m_transform->position(moved.x, moved.y);
 }
 
-void Dot::render(glm::vec2 cam_pos) {
+void Dot::render(std::shared_ptr<Camera> camera) {
+  auto cam_pos = camera->position();
   render_particles(cam_pos);
   auto screen_pos = position() - cam_pos;
   if (screen_pos.x + m_width < 0 || screen_pos.x > SCREEN_WIDTH ||

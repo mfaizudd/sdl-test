@@ -14,9 +14,10 @@ public:
   bool init() override;
   void handle_event(const SDL_Event *e) override;
   void update(float dt) override;
-  void render(glm::vec2 cam_pos) override;
+  void render(std::shared_ptr<Camera> camera) override;
 
 private:
+  SDL_Renderer *m_renderer = nullptr;
   static const int DOT_VEL = 200;
   std::shared_ptr<Texture> m_texture = nullptr;
   std::shared_ptr<Particle> m_particles[TOTAL_PARTICLES];

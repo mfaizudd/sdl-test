@@ -4,27 +4,27 @@
 #include <memory>
 
 CircleCollider::CircleCollider(float x, float y, float radius) {
-  this->set_position(x, y);
-  this->radius = radius;
+  position(x, y);
+  m_radius = radius;
 }
 
 CircleCollider::CircleCollider(std::shared_ptr<Transform> parent,
                                float radius) {
-  this->parent = parent;
-  this->radius = radius;
+  m_parent = parent;
+  m_radius = radius;
 }
 
-void CircleCollider::set_position(float x, float y) {
-  this->position.x = x;
-  this->position.y = y;
+void CircleCollider::position(float x, float y) {
+  m_position.x = x;
+  m_position.y = y;
 }
 
-float CircleCollider::get_radius() const { return this->radius; }
+float CircleCollider::radius() const { return m_radius; }
 
-glm::vec2 CircleCollider::get_position() const {
-  if (!this->parent.has_value()) {
-    return this->position;
+glm::vec2 CircleCollider::position() const {
+  if (!m_parent.has_value()) {
+    return m_position;
   }
-  auto parent = this->parent.value();
-  return parent->position() + this->position;
+  auto parent = m_parent.value();
+  return parent->position() + m_position;
 }

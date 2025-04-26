@@ -5,8 +5,7 @@
 #include <glm/ext/vector_float2.hpp>
 #include <memory>
 
-GameObject::GameObject(SDL_Renderer *renderer) {
-  m_renderer = renderer;
+GameObject::GameObject() {
   m_transform = std::make_shared<Transform>();
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Bg.h"
+#include "Camera.h"
 #include "Dot.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_render.h>
@@ -28,6 +29,7 @@ private:
   SDL_Renderer *m_renderer;
   SDL_WindowID m_window_id;
   SDL_DisplayID m_display_id;
+  std::shared_ptr<Camera> m_camera = nullptr;
   std::shared_ptr<Bg> m_bg = nullptr;
   std::shared_ptr<Dot> m_dot = nullptr;
 

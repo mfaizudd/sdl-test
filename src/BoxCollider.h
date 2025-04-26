@@ -11,14 +11,14 @@ public:
   BoxCollider(std::shared_ptr<Transform> parent, float width, float height);
   void set_dimension(float width, float height);
   void set_position(float x, float y);
-  float get_width() const;
-  float get_height() const;
-  glm::vec2 get_position() const;
-  glm::vec2 get_local_position() const;
+  float width() const;
+  float height() const;
+  glm::vec2 position() const;
+  glm::vec2 local_position() const;
 
 private:
-  glm::vec2 position{0, 0};
-  float width = 0;
-  float height = 0;
-  std::optional<std::shared_ptr<Transform>> parent = std::nullopt;
+  glm::vec2 m_position{0, 0};
+  float m_width = 0;
+  float m_height = 0;
+  std::optional<std::shared_ptr<Transform>> m_parent = std::nullopt;
 };

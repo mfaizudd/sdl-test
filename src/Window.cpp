@@ -60,6 +60,7 @@ bool Window::init() {
     this->free();
     return false;
   }
+  m_camera = std::make_shared<Camera>();
   SDL_SetRenderVSync(m_renderer, 1);
   SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
   SDL_RenderClear(m_renderer);
@@ -187,7 +188,11 @@ void Window::render() {
   }
 }
 
-void Window::update(float dt) { m_dot->update(dt); }
+void Window::update(float dt) {
+  m_dot->update(dt); 
+  auto pos = m_dot->position();
+  m_camera->position(pos);
+}
 
 int Window::width() const { return m_width; }
 int Window::height() const { return m_height; }
