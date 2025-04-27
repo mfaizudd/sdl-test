@@ -61,6 +61,10 @@ bool Window::init() {
     return false;
   }
   m_camera = std::make_shared<Camera>();
+  if (!g_set_tiles(m_renderer)) {
+    this->free();
+    return false;
+  }
   SDL_SetRenderVSync(m_renderer, 1);
   SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
   SDL_RenderClear(m_renderer);
@@ -178,7 +182,9 @@ void Window::render() {
     SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(m_renderer);
 
-    m_bg->render(m_camera);
+    for (int i = 0; i < TOTAL_TILES; i++) {
+      g_tiles(i)->render(m_camera);
+    }
     m_dot->render(m_camera);
     // Update screen
     SDL_RenderPresent(m_renderer);

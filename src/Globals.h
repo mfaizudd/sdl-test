@@ -3,6 +3,7 @@
 #include "BoxCollider.h"
 #include "CircleCollider.h"
 #include "Texture.h"
+#include "Tile.h"
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
@@ -32,22 +33,6 @@ const int TILE_WIDTH = 80;
 const int TILE_HEIGHT = 80;
 const int TOTAL_TILES = 192;
 const int TOTAL_TILE_SPRITES = 12;
-
-// Tile sprites
-enum TileType {
-  Red = 0,
-  Green,
-  Blue,
-  Center,
-  Top,
-  TopRight,
-  Right,
-  BottomRight,
-  Bottom,
-  BottomLeft,
-  Left,
-  TopLeft
-};
 
 enum RecordingState {
   SelectingDevice,
@@ -130,12 +115,18 @@ inline bool check_collision(std::shared_ptr<CircleCollider> a,
   return glm::distance(a_pos, c) < a->radius();
 }
 
+bool touches_wall(std::shared_ptr<CircleCollider> box);
+
 Texture *g_texture_red();
 Texture *g_texture_green();
 Texture *g_texture_blue();
 Texture *g_texture_shimmer();
+Texture *g_texture_tiles();
+std::shared_ptr<Tile> g_tiles(int index);
+SDL_FRect tile_clip(TileType tile_type);
 
 bool g_init();
 bool g_load_media(SDL_Renderer *renderer);
+bool g_set_tiles(SDL_Renderer *renderer);
 void g_close();
 

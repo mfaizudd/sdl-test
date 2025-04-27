@@ -10,9 +10,10 @@ Camera::Camera() {
       std::make_shared<BoxCollider>(m_transform, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
-glm::vec2 Camera::position() const { return m_transform->position(); }
 void Camera::position(glm::vec2 position) {
   m_transform->position(position.x, position.y);
 }
+glm::vec2 Camera::position() const { return m_transform->position(); }
+std::shared_ptr<BoxCollider> Camera::collider() const { return m_collider; }
 float Camera::width() const { return m_collider->width(); }
 float Camera::height() const { return m_collider->height(); }

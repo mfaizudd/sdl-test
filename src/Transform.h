@@ -5,6 +5,7 @@
 class Transform {
 public:
   Transform();
+  Transform(float x, float y);
   Transform(std::shared_ptr<Transform> parent);
   void position(float x, float y);
   glm::vec2 position() const;

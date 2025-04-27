@@ -29,5 +29,6 @@ sources = [
   'src/Dot.cpp',
   'src/Bg.cpp',
   'src/Camera.cpp',
+  'src/Tile.cpp',
 ]
 executable('sdl-test', sources, dependencies: deps, include_directories: includes)

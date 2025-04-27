@@ -64,11 +64,11 @@ void Dot::update(float dt) {
   auto moved = position + m_velocity * dt;
   m_transform->position(moved.x, moved.y);
   if (moved.x < 0 || moved.x + m_width > LEVEL_WIDTH ||
-      check_collision(m_collider, g_wall)) {
+      check_collision(m_collider, g_wall) || touches_wall(m_collider)) {
     moved.x -= m_velocity.x * dt;
   }
   if (moved.y < 0 || moved.y + m_height > LEVEL_HEIGHT ||
-      check_collision(m_collider, g_wall)) {
+      check_collision(m_collider, g_wall) || touches_wall(m_collider)) {
     moved.y -= m_velocity.y * dt;
   }
   m_transform->position(moved.x, moved.y);

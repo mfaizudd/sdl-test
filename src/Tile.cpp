@@ -7,16 +7,13 @@
 #include <glm/ext/vector_float2.hpp>
 #include <memory>
 
-Tile::Tile(float x, float y, TileType type, SDL_Renderer *renderer) {
-  m_renderer = renderer;
+Tile::Tile(float x, float y, TileType type) {
   m_transform = std::make_shared<Transform>(x, y);
-  m_collider = std::make_shared<BoxCollider>(m_transform);
+  m_collider = std::make_shared<BoxCollider>(m_transform, TILE_WIDTH, TILE_HEIGHT);
   m_type = type;
-  m_texture = std::make_shared<Texture>();
 }
 
 bool Tile::init() {
-  // TODO: Load tile texture by tile type
   return true;
 }
 
@@ -25,7 +22,8 @@ void Tile::render(std::shared_ptr<Camera> camera) {
   if (check_collision(m_collider, camera->collider())) {
     auto cam_pos = camera->position();
     auto pos = position() - cam_pos;
-    m_texture->render(pos.x, pos.y);
+    auto clip = tile_clip(m_type);
+    g_texture_tiles()->render(pos.x, pos.y, &clip);
   }
 }
 void Tile::update(float dt) {}
