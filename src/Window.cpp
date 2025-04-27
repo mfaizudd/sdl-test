@@ -178,20 +178,31 @@ void Window::render() {
     SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(m_renderer);
 
-    auto cam_pos = m_dot->position();
-    cam_pos.x = cam_pos.x + m_dot->width() / 2.0 - SCREEN_WIDTH / 2.0;
-    cam_pos.y = cam_pos.y + m_dot->height() / 2.0 - SCREEN_HEIGHT / 2.0;
-    m_bg->render(cam_pos);
-    m_dot->render(cam_pos);
+    m_bg->render(m_camera);
+    m_dot->render(m_camera);
     // Update screen
     SDL_RenderPresent(m_renderer);
   }
 }
 
 void Window::update(float dt) {
-  m_dot->update(dt); 
+  m_dot->update(dt);
   auto pos = m_dot->position();
-  m_camera->position(pos);
+  auto cam_pos = glm::vec2{pos.x + m_dot->width() / 2.0 - SCREEN_WIDTH / 2.0,
+                           pos.y + m_dot->height() / 2.0 - SCREEN_HEIGHT / 2.0};
+  if (cam_pos.x < 0) {
+    cam_pos.x = 0;
+  }
+  if (cam_pos.y < 0) {
+    cam_pos.y = 0;
+  }
+  if (cam_pos.x + SCREEN_WIDTH > LEVEL_WIDTH) {
+    cam_pos.x = LEVEL_WIDTH - SCREEN_WIDTH;
+  }
+  if (cam_pos.y + SCREEN_HEIGHT > LEVEL_HEIGHT) {
+    cam_pos.y = LEVEL_HEIGHT - SCREEN_HEIGHT;
+  }
+  m_camera->position(cam_pos);
 }
 
 int Window::width() const { return m_width; }
