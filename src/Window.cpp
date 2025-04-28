@@ -5,10 +5,12 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_keycode.h>
 #include <SDL3/SDL_log.h>
+#include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_video.h>
+#include <cstdint>
 #include <cstdio>
 #include <glm/ext/vector_float2.hpp>
 #include <memory>
@@ -64,6 +66,28 @@ bool Window::init() {
   if (!g_set_tiles(m_renderer)) {
     this->free();
     return false;
+  }
+  m_texture = std::make_shared<Texture>(m_renderer);
+  m_texture->pixel_format = SDL_GetWindowPixelFormat(m_window);
+  if (!m_texture->load_pixels_from_file("assets/foo.png")) {
+    this->free();
+    return false;
+  }
+
+  { // Manipulating pixels
+    uint32_t *pixels = m_texture->get_pixels_32();
+    int pixel_count = m_texture->get_pitch_32() * m_texture->height();
+
+    uint32_t color_key = m_texture->map_rgba(0xFF, 0, 0xFF, 0xFF);
+    uint32_t transparent = m_texture->map_rgba(0xFF, 0xFF, 0xFF, 0);
+    for (int i = 0; i < pixel_count; i++) {
+      if (pixels[i] == color_key) {
+        pixels[i] = transparent;
+      }
+    }
+
+    if (!m_texture->load_from_pixels()) {
+    }
   }
   SDL_SetRenderVSync(m_renderer, 1);
   SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
@@ -185,6 +209,7 @@ void Window::render() {
     for (int i = 0; i < TOTAL_TILES; i++) {
       g_tiles(i)->render(m_camera);
     }
+    m_texture->render(m_camera->position().x, m_camera->position().y);
     m_dot->render(m_camera);
     // Update screen
     SDL_RenderPresent(m_renderer);

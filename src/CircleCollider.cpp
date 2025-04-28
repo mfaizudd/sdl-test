@@ -10,6 +10,7 @@ CircleCollider::CircleCollider(float x, float y, float radius) {
 
 CircleCollider::CircleCollider(std::shared_ptr<Transform> parent,
                                float radius) {
+  position(0, 0);
   m_parent = parent;
   m_radius = radius;
 }

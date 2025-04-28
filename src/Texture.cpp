@@ -3,18 +3,22 @@
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3/SDL_oldnames.h>
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_surface.h>
+#include <SDL3/SDL_video.h>
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <cstdint>
+#include <cstdio>
 
 Texture::Texture(SDL_Renderer *renderer) : m_renderer(renderer) {
   m_texture = nullptr;
   m_width = 0;
   m_height = 0;
+  m_surface_pixels = nullptr;
 }
 
 Texture::~Texture() { free(); }
@@ -24,9 +28,45 @@ bool Texture::load_from_file(std::string path) {
     SDL_Log("Unable to load image, renderer is not set.\n");
     return false;
   }
-  this->free();
 
-  SDL_Texture *new_texture = nullptr;
+  if (!load_pixels_from_file(path)) {
+    return false;
+  }
+
+  if (!load_from_pixels()) {
+    return false;
+  }
+
+  return m_texture != nullptr;
+}
+
+bool Texture::load_pixels_from_file(std::string path) {
+  if (!pixel_format.has_value()) {
+    SDL_Surface *loaded_surface = IMG_Load(path.c_str());
+    if (loaded_surface == nullptr) {
+      SDL_Log("Unable to load image %s. SDL_Image error: %s\n", path.c_str(),
+              SDL_GetError());
+      return false;
+    }
+
+    if (!SDL_SetSurfaceColorKey(
+            loaded_surface, true,
+            SDL_MapSurfaceRGB(loaded_surface, 0, 0xFF, 0xFF))) {
+      SDL_Log("Unable to set surface color key: %s\n", SDL_GetError());
+      return false;
+    }
+    m_texture = SDL_CreateTextureFromSurface(m_renderer, loaded_surface);
+    SDL_DestroySurface(loaded_surface);
+    if (m_texture == nullptr) {
+      SDL_Log("Unable to create texture from surface: %s\n", SDL_GetError());
+      return false;
+    }
+
+    m_width = m_texture->w;
+    m_height = m_texture->h;
+    return true;
+  }
+  this->free();
   SDL_Surface *loaded_surface = IMG_Load(path.c_str());
   if (loaded_surface == nullptr) {
     SDL_Log("Unable to load image %s. SDL_Image error: %s\n", path.c_str(),
@@ -34,24 +74,43 @@ bool Texture::load_from_file(std::string path) {
     return false;
   }
 
-  SDL_SetSurfaceColorKey(loaded_surface, true,
-                         SDL_MapSurfaceRGB(loaded_surface, 0, 0xFF, 0xFF));
-
-  new_texture = SDL_CreateTextureFromSurface(m_renderer, loaded_surface);
-  if (new_texture == nullptr) {
-    SDL_DestroySurface(loaded_surface);
-    loaded_surface = nullptr;
-    SDL_Log("Unable to create texture from %s. SDL Error: %s\n", path.c_str(),
+  m_surface_pixels = SDL_ConvertSurface(loaded_surface, pixel_format.value());
+  SDL_DestroySurface(loaded_surface);
+  if (m_surface_pixels == nullptr) {
+    SDL_Log("Unable to convert surface to display format. SDL Error: %s\n",
             SDL_GetError());
     return false;
   }
-  m_width = loaded_surface->w;
-  m_height = loaded_surface->h;
-  SDL_DestroySurface(loaded_surface);
-  loaded_surface = nullptr;
 
-  m_texture = new_texture;
-  return m_texture != nullptr;
+  m_width = m_surface_pixels->w;
+  m_height = m_surface_pixels->h;
+  return true;
+}
+
+bool Texture::load_from_pixels() {
+  if (m_surface_pixels == nullptr) {
+    printf("No pixels loaded\n");
+    return true;
+  }
+
+  SDL_SetSurfaceColorKey(m_surface_pixels, true,
+                         SDL_MapSurfaceRGB(m_surface_pixels, 0, 0xFF, 0xFF));
+
+  m_texture = SDL_CreateTextureFromSurface(m_renderer, m_surface_pixels);
+  if (m_texture == nullptr) {
+    SDL_Log("Unable to create texture from loaded pixels. %s\n",
+            SDL_GetError());
+    SDL_DestroySurface(m_surface_pixels);
+    m_surface_pixels = nullptr;
+    return false;
+  }
+
+  m_width = m_texture->w;
+  m_height = m_texture->h;
+
+  SDL_DestroySurface(m_surface_pixels);
+  m_surface_pixels = nullptr;
+  return true;
 }
 
 #if defined(SDL_TTF_MAJOR_VERSION)
@@ -120,3 +179,29 @@ void Texture::render(float x, float y, const SDL_FRect *clip, double angle,
 
 float Texture::width() { return m_width; }
 float Texture::height() { return m_height; }
+
+uint32_t *Texture::get_pixels_32() {
+  if (m_surface_pixels == nullptr) {
+    return nullptr;
+  }
+  return static_cast<uint32_t *>(m_surface_pixels->pixels);
+}
+uint32_t Texture::get_pitch_32() {
+  if (m_surface_pixels == nullptr) {
+    return 0;
+  }
+  return m_surface_pixels->pitch / 4;
+}
+uint32_t Texture::map_rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+  if (m_surface_pixels == nullptr) {
+    return 0;
+  }
+
+  auto pixel_format_details =
+      SDL_GetPixelFormatDetails(m_surface_pixels->format);
+  if (pixel_format_details == nullptr) {
+    SDL_Log("Unable to get pixel format details: %s\n", SDL_GetError());
+    return 0;
+  }
+  return SDL_MapRGBA(pixel_format_details, nullptr, r, g, b, a);
+}

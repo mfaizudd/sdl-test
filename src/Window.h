@@ -32,6 +32,7 @@ private:
   std::shared_ptr<Camera> m_camera = nullptr;
   std::shared_ptr<Bg> m_bg = nullptr;
   std::shared_ptr<Dot> m_dot = nullptr;
+  std::shared_ptr<Texture> m_texture = nullptr;
 
   int m_width;
   int m_height;

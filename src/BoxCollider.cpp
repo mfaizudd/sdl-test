@@ -1,9 +1,12 @@
 #include "BoxCollider.h"
 #include <glm/ext/vector_float2.hpp>
 #include <memory>
+#include <optional>
 
 BoxCollider::BoxCollider(float width, float height)
-    : m_width(width), m_height(height) {}
+    : m_width(width), m_height(height) {
+  m_parent = std::nullopt;
+}
 
 BoxCollider::BoxCollider(float x, float y, float width, float height)
     : BoxCollider(width, height) {
