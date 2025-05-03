@@ -186,6 +186,10 @@ uint32_t *Texture::get_pixels_32() {
   }
   return static_cast<uint32_t *>(m_surface_pixels->pixels);
 }
+uint32_t Texture::get_pixel_32(uint32_t x, uint32_t y) {
+  auto pixels = static_cast<uint32_t *>(m_surface_pixels->pixels);
+  return pixels[y * get_pitch_32() + x];
+}
 uint32_t Texture::get_pitch_32() {
   if (m_surface_pixels == nullptr) {
     return 0;

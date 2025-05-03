@@ -32,6 +32,7 @@ public:
   float width();
   float height();
   uint32_t *get_pixels_32();
+  uint32_t get_pixel_32(uint32_t x, uint32_t y);
   uint32_t get_pitch_32();
   uint32_t map_rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 

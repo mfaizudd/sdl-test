@@ -68,8 +68,15 @@ bool Window::init() {
     return false;
   }
   m_texture = std::make_shared<Texture>(m_renderer);
-  m_texture->pixel_format = SDL_GetWindowPixelFormat(m_window);
+  auto pixel_format = SDL_GetWindowPixelFormat(m_window);
+  m_texture->pixel_format = pixel_format;
   if (!m_texture->load_pixels_from_file("assets/foo.png")) {
+    this->free();
+    return false;
+  }
+
+  m_bitmap_font = std::make_shared<BitmapFont>(m_renderer, pixel_format);
+  if (!m_bitmap_font->build_font("assets/lazyfont.png")) {
     this->free();
     return false;
   }
@@ -211,6 +218,7 @@ void Window::render() {
     }
     m_texture->render(m_camera->position().x, m_camera->position().y);
     m_dot->render(m_camera);
+    m_bitmap_font->render_text(20, 20, "The quick brown fox jumps\nover the lazy dog.");
     // Update screen
     SDL_RenderPresent(m_renderer);
   }

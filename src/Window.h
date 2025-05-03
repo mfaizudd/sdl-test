@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Bg.h"
+#include "BitmapFont.h"
 #include "Camera.h"
 #include "Dot.h"
 #include <SDL3/SDL_events.h>
@@ -33,6 +34,7 @@ private:
   std::shared_ptr<Bg> m_bg = nullptr;
   std::shared_ptr<Dot> m_dot = nullptr;
   std::shared_ptr<Texture> m_texture = nullptr;
+  std::shared_ptr<BitmapFont> m_bitmap_font = nullptr;
 
   int m_width;
   int m_height;
