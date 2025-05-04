@@ -23,9 +23,16 @@
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #include <SDL3_ttf/SDL_ttf.h>
-#include <cmath>
+#include <cstdint>
+#include <cstdio>
 #include <glm/detail/qualifier.hpp>
 #include <glm/ext/vector_float2.hpp>
+
+uint32_t callback(void *param, SDL_TimerID timer_id, uint32_t interval) {
+  printf("Callback called: %s\n", reinterpret_cast<char *>(param));
+  printf("Waited for %f seconds\n", interval/1000.0);
+  return 0;
+}
 
 int main(int argc, char *args[]) {
   if (!g_init()) {
@@ -45,6 +52,7 @@ int main(int argc, char *args[]) {
   // main loop
   bool quit = false;
   float last_tick = SDL_GetTicks();
+  auto timer = SDL_AddTimer(5000, callback, (void *)"Callback njir");
   while (!quit) {
     auto dt = (SDL_GetTicks() - last_tick) / 1000.0f;
     last_tick = SDL_GetTicks();
@@ -59,6 +67,7 @@ int main(int argc, char *args[]) {
     window->update(dt);
     window->render();
   }
+  SDL_RemoveTimer(timer);
 
   delete window;
   g_close();
