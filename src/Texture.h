@@ -22,6 +22,7 @@ public:
   bool load_from_rendered_text(std::string text, SDL_Color color,
                                TTF_Font *font);
 #endif // defined (SDL_TTF_MAJOR_VERSION)
+  bool create_blank(int width, int height);
   void free();
   void set_color(uint8_t r, uint8_t g, uint8_t b);
   void set_blend_mode(SDL_BlendMode blending);
@@ -35,6 +36,9 @@ public:
   uint32_t get_pixel_32(uint32_t x, uint32_t y);
   uint32_t get_pitch_32();
   uint32_t map_rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+  void copy_raw_pixels32(void *pixels);
+  bool lock_texture();
+  bool unlock_texture();
 
   std::optional<SDL_PixelFormat> pixel_format = std::nullopt;
 
@@ -42,6 +46,10 @@ private:
   SDL_Texture *m_texture;
   SDL_Renderer *m_renderer;
   SDL_Surface *m_surface_pixels;
+
+  void *m_raw_pixels;
+  int m_raw_pitch;
+
   float m_width;
   float m_height;
 };

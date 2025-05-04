@@ -3,6 +3,7 @@
 #include "Bg.h"
 #include "BitmapFont.h"
 #include "Camera.h"
+#include "DataStream.h"
 #include "Dot.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_render.h>
@@ -35,6 +36,8 @@ private:
   std::shared_ptr<Dot> m_dot = nullptr;
   std::shared_ptr<Texture> m_texture = nullptr;
   std::shared_ptr<BitmapFont> m_bitmap_font = nullptr;
+  std::shared_ptr<Texture> m_streaming_texture = nullptr;
+  std::shared_ptr<DataStream> m_data_stream = nullptr;
 
   int m_width;
   int m_height;

@@ -81,6 +81,18 @@ bool Window::init() {
     return false;
   }
 
+  m_streaming_texture = std::make_shared<Texture>(m_renderer);
+  if (!m_streaming_texture->create_blank(64, 205)) {
+    printf("Failed to create streaming texture.\n");
+    return false;
+  }
+
+  m_data_stream = std::make_shared<DataStream>();
+  if (!m_data_stream->load_media()) {
+    printf("Unable to load data stream.\n");
+    return false;
+  }
+
   { // Manipulating pixels
     uint32_t *pixels = m_texture->get_pixels_32();
     int pixel_count = m_texture->get_pitch_32() * m_texture->height();
@@ -213,12 +225,18 @@ void Window::render() {
     SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(m_renderer);
 
-    for (int i = 0; i < TOTAL_TILES; i++) {
-      g_tiles(i)->render(m_camera);
-    }
-    m_texture->render(m_camera->position().x, m_camera->position().y);
+    // for (int i = 0; i < TOTAL_TILES; i++) {
+    //   g_tiles(i)->render(m_camera);
+    // }
+    // m_texture->render(m_camera->position().x, m_camera->position().y);
     m_dot->render(m_camera);
-    m_bitmap_font->render_text(20, 20, "The quick brown fox jumps\nover the lazy dog.");
+    m_streaming_texture->lock_texture();
+    m_streaming_texture->copy_raw_pixels32(m_data_stream->get_buffer());
+    m_streaming_texture->unlock_texture();
+    m_streaming_texture->render(m_camera->position().x, m_camera->position().y);
+    // m_bitmap_font->render_text(20, 20,
+    //                            "The quick brown fox jumps\nover the lazy
+    //                            dog.");
     // Update screen
     SDL_RenderPresent(m_renderer);
   }

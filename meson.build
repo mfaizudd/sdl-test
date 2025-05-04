@@ -31,5 +31,6 @@ sources = [
   'src/Camera.cpp',
   'src/Tile.cpp',
   'src/BitmapFont.cpp',
+  'src/DataStream.cpp',
 ]
 executable('sdl-test', sources, dependencies: deps, include_directories: includes)

@@ -13,6 +13,7 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
 
 Texture::Texture(SDL_Renderer *renderer) : m_renderer(renderer) {
   m_texture = nullptr;
@@ -140,6 +141,20 @@ bool Texture::load_from_rendered_text(std::string text, SDL_Color color,
 }
 #endif // defined (SDL_TTF_MAJOR_VERSION)
 
+bool Texture::create_blank(int width, int height) {
+  this->free();
+
+  m_texture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBA8888,
+                                SDL_TEXTUREACCESS_STREAMING, width, height);
+  if (m_texture == nullptr) {
+    return false;
+  }
+
+  m_width = width;
+  m_height = height;
+  return true;
+}
+
 void Texture::free() {
   if (m_texture == nullptr) {
     return;
@@ -208,4 +223,38 @@ uint32_t Texture::map_rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
     return 0;
   }
   return SDL_MapRGBA(pixel_format_details, nullptr, r, g, b, a);
+}
+
+void Texture::copy_raw_pixels32(void *pixels) {
+  if (m_raw_pixels == nullptr) {
+    return;
+  }
+
+  memcpy(m_raw_pixels, pixels, m_raw_pitch * m_height);
+}
+
+bool Texture::lock_texture() {
+  if (m_raw_pixels != nullptr) {
+    printf("Texture is already locked.\n");
+    return false;
+  }
+
+  if (!SDL_LockTexture(m_texture, nullptr, &m_raw_pixels, &m_raw_pitch)) {
+    SDL_Log("Unable to log texture: %s\n", SDL_GetError());
+    return false;
+  }
+
+  return true;
+}
+
+bool Texture::unlock_texture() {
+  if (m_raw_pixels == nullptr) {
+    printf("Texture is not locked.\n");
+    return false;
+  }
+
+  SDL_UnlockTexture(m_texture);
+  m_raw_pixels = nullptr;
+  m_raw_pitch = 0;
+  return true;
 }
