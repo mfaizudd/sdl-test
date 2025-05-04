@@ -225,15 +225,15 @@ void Window::render() {
     SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(m_renderer);
 
-    // for (int i = 0; i < TOTAL_TILES; i++) {
-    //   g_tiles(i)->render(m_camera);
-    // }
+    for (int i = 0; i < TOTAL_TILES; i++) {
+      g_tiles(i)->render(m_camera);
+    }
     // m_texture->render(m_camera->position().x, m_camera->position().y);
     m_dot->render(m_camera);
-    m_streaming_texture->lock_texture();
-    m_streaming_texture->copy_raw_pixels32(m_data_stream->get_buffer());
-    m_streaming_texture->unlock_texture();
-    m_streaming_texture->render(m_camera->position().x, m_camera->position().y);
+    // m_streaming_texture->lock_texture();
+    // m_streaming_texture->copy_raw_pixels32(m_data_stream->get_buffer());
+    // m_streaming_texture->unlock_texture();
+    // m_streaming_texture->render(m_camera->position().x, m_camera->position().y);
     // m_bitmap_font->render_text(20, 20,
     //                            "The quick brown fox jumps\nover the lazy
     //                            dog.");

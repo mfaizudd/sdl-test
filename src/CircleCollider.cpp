@@ -27,5 +27,5 @@ glm::vec2 CircleCollider::position() const {
     return m_position;
   }
   auto parent = m_parent.value();
-  return parent->position() + m_position;
+  return parent->position() + m_position + glm::vec2{m_radius, m_radius};
 }
