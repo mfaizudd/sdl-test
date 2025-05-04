@@ -4,18 +4,20 @@ sdl3_image_dep = dependency('SDL3_image')
 sdl3_ttf_dep = dependency('SDL3_ttf')
 sdl3_mixer_dep = dependency('SDL3_mixer')
 glm_dep = dependency('glm')
+glu_dep = dependency('glu')
 deps = [
   sdl3_dep,
   sdl3_image_dep,
   sdl3_ttf_dep,
   sdl3_mixer_dep,
   glm_dep,
+  glu_dep,
 ]
 includes = include_directories([
   'src',
 ])
 sources = [
-  'src/main_mutex.cpp',
+  'src/main_opengl.cpp',
   'src/Texture.cpp',
   'src/Button.cpp',
   'src/Timer.cpp',
