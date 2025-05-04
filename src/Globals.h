@@ -7,7 +7,6 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
-#include <cmath>
 #include <glm/ext/vector_float2.hpp>
 #include <glm/geometric.hpp>
 #include <memory>
