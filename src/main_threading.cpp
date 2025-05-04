@@ -12,6 +12,7 @@
 #include <SDL3/SDL_keycode.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3/SDL_mutex.h>
 #include <SDL3/SDL_oldnames.h>
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_properties.h>
@@ -27,7 +28,6 @@
 #include <SDL3_mixer/SDL_mixer.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <cstddef>
-#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <glm/detail/qualifier.hpp>
@@ -41,9 +41,21 @@ SDL_Window *g_window = nullptr;
 SDL_Renderer *g_renderer = nullptr;
 TTF_Font *g_font = nullptr;
 Texture *texture = nullptr;
+SDL_Semaphore *g_data_lock = nullptr;
+int g_data = -1;
 
-int thread_func(void *data) {
-  printf("Running thread with value: %d\n", (int32_t)(size_t)data);
+int worker(void *data) {
+  printf("Starting %s\n", reinterpret_cast<char *>(data));
+  srand(SDL_GetTicks());
+  for (int i = 0; i < 5; i++) {
+    SDL_Delay(16 + rand() % 32);
+    SDL_WaitSemaphore(g_data_lock);
+    printf("%s gets %d\n", reinterpret_cast<char *>(data), g_data);
+    g_data = rand() % 256;
+    printf("%s sets %d\n", reinterpret_cast<char *>(data), g_data);
+    SDL_SignalSemaphore(g_data_lock);
+  }
+  printf("%s finished\n", reinterpret_cast<char *>(data));
   return 0;
 }
 
@@ -63,30 +75,38 @@ int main(int argc, char *args[]) {
     return EXIT_FAILURE;
   }
 
-  auto data = 'A';
-  auto thread = SDL_CreateThread(thread_func, "TestThread", (void *)(size_t)data);
+  g_data_lock = SDL_CreateSemaphore(1);
+
+  auto thread_a = SDL_CreateThread(worker, "Thread A", (void *)"Thread A");
+  auto thread_b = SDL_CreateThread(worker, "Thread B", (void *)"Thread B");
 
   SDL_Event e;
   // main loop
   bool quit = false;
   // float last_tick = SDL_GetTicks();
   while (!quit) {
-    // auto dt = (SDL_GetTicks() - last_tick) / 1000.0f;
-    // last_tick = SDL_GetTicks();
+    // auto tick = SDL_GetTicks();
+    // auto dt = (tick - last_tick) / 1000.0f;
+    // last_tick = tick;
     while (SDL_PollEvent(&e) != 0) {
       if (e.type == SDL_EVENT_QUIT) {
         quit = true;
       }
     }
 
+    fflush(stdout);
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
     SDL_RenderPresent(renderer);
     // do something
   }
 
-  SDL_WaitThread(thread, nullptr);
+  SDL_DestroySemaphore(g_data_lock);
+  g_data_lock = nullptr;
+  SDL_WaitThread(thread_a, nullptr);
+  thread_a = nullptr;
+  SDL_WaitThread(thread_b, nullptr);
+  thread_b = nullptr;
   g_close();
-
   return 0;
 }
