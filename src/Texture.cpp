@@ -141,11 +141,11 @@ bool Texture::load_from_rendered_text(std::string text, SDL_Color color,
 }
 #endif // defined (SDL_TTF_MAJOR_VERSION)
 
-bool Texture::create_blank(int width, int height) {
+bool Texture::create_blank(int width, int height, SDL_TextureAccess access) {
   this->free();
 
   m_texture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBA8888,
-                                SDL_TEXTUREACCESS_STREAMING, width, height);
+                                access, width, height);
   if (m_texture == nullptr) {
     return false;
   }
@@ -190,6 +190,10 @@ void Texture::render(float x, float y, const SDL_FRect *clip, double angle,
   }
   SDL_RenderTextureRotated(m_renderer, m_texture, clip, &quad, angle, center,
                            flip);
+}
+
+void Texture::set_as_render_target() {
+  SDL_SetRenderTarget(m_renderer, m_texture);
 }
 
 float Texture::width() { return m_width; }

@@ -48,5 +48,7 @@ private:
   bool m_minimized;
   bool m_shown;
 
+  int angle = 0;
+
   void free();
 };

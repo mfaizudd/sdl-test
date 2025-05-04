@@ -82,7 +82,7 @@ bool Window::init() {
   }
 
   m_streaming_texture = std::make_shared<Texture>(m_renderer);
-  if (!m_streaming_texture->create_blank(64, 205)) {
+  if (!m_streaming_texture->create_blank(SCREEN_WIDTH, SCREEN_HEIGHT, SDL_TEXTUREACCESS_TARGET)) {
     printf("Failed to create streaming texture.\n");
     return false;
   }
@@ -222,6 +222,7 @@ void Window::focus() {
 void Window::render() {
   if (!m_minimized) {
     // Clear screen
+    m_streaming_texture->set_as_render_target();
     SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(m_renderer);
 
@@ -230,11 +231,20 @@ void Window::render() {
     }
     // m_texture->render(m_camera->position().x, m_camera->position().y);
     m_dot->render(m_camera);
+    SDL_SetRenderTarget(m_renderer, nullptr);
+    angle++;
+    if (angle >= 360) {
+      angle = 0;
+    }
+    auto center = SDL_FPoint{SCREEN_WIDTH / 2.0, SCREEN_HEIGHT / 2.0};
+    SDL_SetRenderDrawColor(m_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_RenderClear(m_renderer);
+    m_streaming_texture->render(0, 0, nullptr, angle, &center);
     // m_streaming_texture->lock_texture();
     // m_streaming_texture->copy_raw_pixels32(m_data_stream->get_buffer());
     // m_streaming_texture->unlock_texture();
-    // m_streaming_texture->render(m_camera->position().x, m_camera->position().y);
-    // m_bitmap_font->render_text(20, 20,
+    // m_streaming_texture->render(m_camera->position().x,
+    // m_camera->position().y); m_bitmap_font->render_text(20, 20,
     //                            "The quick brown fox jumps\nover the lazy
     //                            dog.");
     // Update screen
