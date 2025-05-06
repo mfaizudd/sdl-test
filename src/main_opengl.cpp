@@ -1,40 +1,6 @@
 #include "Globals.h"
-#include <GL/gl.h>
 #include <GL/glu.h>
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_audio.h>
-#include <SDL3/SDL_error.h>
-#include <SDL3/SDL_events.h>
-#include <SDL3/SDL_gamepad.h>
-#include <SDL3/SDL_haptic.h>
-#include <SDL3/SDL_hints.h>
-#include <SDL3/SDL_init.h>
-#include <SDL3/SDL_joystick.h>
-#include <SDL3/SDL_keyboard.h>
-#include <SDL3/SDL_keycode.h>
-#include <SDL3/SDL_log.h>
-#include <SDL3/SDL_main.h>
-#include <SDL3/SDL_mouse.h>
-#include <SDL3/SDL_mutex.h>
-#include <SDL3/SDL_oldnames.h>
-#include <SDL3/SDL_opengl.h>
-#include <SDL3/SDL_pixels.h>
-#include <SDL3/SDL_properties.h>
-#include <SDL3/SDL_rect.h>
-#include <SDL3/SDL_render.h>
-#include <SDL3/SDL_scancode.h>
-#include <SDL3/SDL_stdinc.h>
-#include <SDL3/SDL_surface.h>
-#include <SDL3/SDL_thread.h>
-#include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_video.h>
-#include <SDL3_image/SDL_image.h>
-#include <SDL3_mixer/SDL_mixer.h>
-#include <SDL3_ttf/SDL_ttf.h>
-#include <cstdint>
-#include <cstdio>
-#include <glm/detail/qualifier.hpp>
-#include <glm/ext/vector_float2.hpp>
 
 SDL_Window *g_window = nullptr;
 SDL_GLContext g_context = nullptr;

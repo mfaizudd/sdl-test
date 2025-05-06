@@ -5,6 +5,7 @@ sdl3_ttf_dep = dependency('SDL3_ttf')
 sdl3_mixer_dep = dependency('SDL3_mixer')
 glm_dep = dependency('glm')
 glu_dep = dependency('glu')
+glew_dep = dependency('glew')
 deps = [
   sdl3_dep,
   sdl3_image_dep,
@@ -12,12 +13,13 @@ deps = [
   sdl3_mixer_dep,
   glm_dep,
   glu_dep,
+  glew_dep,
 ]
 includes = include_directories([
   'src',
 ])
 sources = [
-  'src/main_opengl.cpp',
+  'src/main_opengl3.cpp',
   'src/Texture.cpp',
   'src/Button.cpp',
   'src/Timer.cpp',
